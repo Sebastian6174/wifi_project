@@ -56,7 +56,7 @@ export default function DashboardLayout() {
       {/* ── Top App Bar ── */}
       <PageHeader />
 
-      <div className="flex pt-16 min-h-screen">
+      <div className="flex pt-12 min-h-screen">
 
         {/* ── Mobile overlay ── */}
         {mobileOpen && (
@@ -69,26 +69,26 @@ export default function DashboardLayout() {
         {/* ── Sidebar ── */}
         <aside
           className={[
-            'sidebar sticky top-16 h-[calc(100vh-64px)]',
+            'sidebar sticky top-12 h-[calc(100vh-48px)]',
             /* mobile: slide in/out */
             'fixed lg:static z-40 transition-transform duration-300 ease-in-out',
             mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
           ].join(' ')}
         >
           {/* Brand header */}
-          <div className="px-6 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="sidebar-brand-icon">
+          <div className="px-5 mb-5">
+            <div className="flex items-center gap-2.5">
+              <div className="sidebar-brand-icon p-1.5">
                 <span
-                  className="material-symbols-outlined text-white text-[22px]"
+                  className="material-symbols-outlined text-white text-[18px]"
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
                   security
                 </span>
               </div>
               <div>
-                <p className="sidebar-brand-title">Network Control</p>
-                <p className="sidebar-brand-sub">Santiago de Cali</p>
+                <p className="sidebar-brand-title text-sm">Network Control</p>
+                <p className="sidebar-brand-sub text-[10px]">Santiago de Cali</p>
               </div>
             </div>
           </div>
@@ -100,12 +100,12 @@ export default function DashboardLayout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  ['dash-nav-link', isActive ? 'active' : ''].join(' ')
+                  ['dash-nav-link text-xs py-2', isActive ? 'active' : ''].join(' ')
                 }
                 onClick={() => setMobileOpen(false)}
               >
                 <span
-                  className="material-symbols-outlined text-[22px]"
+                  className="material-symbols-outlined text-[18px]"
                   style={iconFill ? { fontVariationSettings: "'FILL' 1" } : undefined}
                 >
                   {icon}
@@ -116,27 +116,27 @@ export default function DashboardLayout() {
           </nav>
 
           {/* Bottom section */}
-          <div className="mt-auto px-6 flex flex-col gap-4 pt-6">
+          <div className="mt-auto px-5 flex flex-col gap-3 pt-5">
             {/* Report Incident CTA */}
-            <button className="report-incident-btn">
+            <button className="report-incident-btn text-xs py-2">
               Report Incident
             </button>
 
             {/* Footer links */}
-            <div className="border-t border-slate-100 pt-4 flex flex-col gap-2">
-              <a href="#" className="sidebar-footer-link">
-                <span className="material-symbols-outlined text-[20px]">analytics</span>
+            <div className="border-t border-slate-100 pt-3 flex flex-col gap-1">
+              <a href="#" className="sidebar-footer-link text-xs py-1.5">
+                <span className="material-symbols-outlined text-[16px]">analytics</span>
                 System Health
               </a>
-              <a href="#" className="sidebar-footer-link">
-                <span className="material-symbols-outlined text-[20px]">contact_support</span>
+              <a href="#" className="sidebar-footer-link text-xs py-1.5">
+                <span className="material-symbols-outlined text-[16px]">contact_support</span>
                 Support
               </a>
               <button
                 onClick={handleLogout}
-                className="sidebar-footer-link w-full text-left hover:!text-red-500"
+                className="sidebar-footer-link w-full text-left hover:!text-red-500 text-xs py-1.5"
               >
-                <span className="material-symbols-outlined text-[20px]">logout</span>
+                <span className="material-symbols-outlined text-[16px]">logout</span>
                 Sign Out
               </button>
             </div>
@@ -144,21 +144,21 @@ export default function DashboardLayout() {
         </aside>
 
         {/* ── Main content ── */}
-        <main className="flex-1 flex flex-col relative h-[calc(100vh-64px)] overflow-auto salsa-pattern">
+        <main className="flex-1 flex flex-col relative h-[calc(100vh-48px)] overflow-auto salsa-pattern">
           {/* Mobile menu toggle */}
-          <div className="lg:hidden p-4">
+          <div className="lg:hidden p-3">
             <button
-              className="topbar-icon-btn border border-slate-200"
+              className="topbar-icon-btn border border-slate-200 p-1"
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Abrir menú"
             >
-              <span className="material-symbols-outlined">
+              <span className="material-symbols-outlined text-[18px]">
                 {mobileOpen ? 'close' : 'menu'}
               </span>
             </button>
           </div>
 
-          <div className="flex-1 p-6 animate-fade-in">
+          <div className="flex-1 p-5 animate-fade-in">
             <Outlet />
           </div>
         </main>

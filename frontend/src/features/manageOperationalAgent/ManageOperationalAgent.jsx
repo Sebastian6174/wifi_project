@@ -63,8 +63,8 @@ export default function ManageOperationalAgent() {
           <WorkforceManagementCard />
         </div>
 
-        {/* Right Column (4 cols): Active Tickets (spans available height) */}
-        <div className="col-span-12 lg:col-span-4 sticky top-20" style={{ maxHeight: 'calc(100vh - 120px)' }}>
+        {/* Right Column (4 cols): Active Tickets */}
+        <div className="col-span-12 lg:col-span-4 sticky top-5" style={{ height: 'calc(100vh - 100px)' }}>
           <ActiveTicketsPanel tickets={TICKETS} />
         </div>
       </div>

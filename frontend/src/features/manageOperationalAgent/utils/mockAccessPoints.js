@@ -23,6 +23,20 @@ export const ACCESS_POINTS = [
 
 export const TICKETS = [
   {
+    id: 'TKT-4420',
+    severity: 'critical',
+    label: 'Critical Anomaly',
+    title: 'AP Offline - Power Loss',
+    location: 'Estadio Olímpico',
+    commune: 'Commune 10',
+    apId: 'AP-004',
+    technician: null,
+    reasonNotAssigned: 'Todos los técnicos de la zona Centro/Sur se encuentran operando en campo o finalizando turno. No hay disponibilidad inmediata en un radio de 5km.',
+    ago: '5m ago',
+    description: 'Reporte múltiple de caída total de señal en cuadrícula oriente del Estadio. Requiere atención inmediata antes del evento.',
+    affectedUsers: 211,
+  },
+  {
     id: 'TKT-4412',
     severity: 'critical',
     label: 'Critical Anomaly',

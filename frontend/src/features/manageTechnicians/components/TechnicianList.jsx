@@ -64,7 +64,7 @@ export default function TechnicianList({ technicians, onEdit, onDelete }) {
 
                   {/* Actions */}
                   <td className="p-4 text-right">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex justify-end gap-1">
                       <button 
                         onClick={() => onEdit(tech)}
                         className="p-1.5 text-slate-400 hover:text-[var(--md-primary-container)] hover:bg-[var(--md-primary-container)]/10 rounded transition-colors" 

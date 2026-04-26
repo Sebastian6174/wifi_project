@@ -42,12 +42,12 @@ export default function PageHeader({
       <div className="topbar-inner">
 
         {/* ── Brand ── */}
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-4">
           <span className="topbar-brand">{title}</span>
 
           {/* Search — hidden on mobile */}
           <div className="topbar-search hidden md:flex">
-            <span className="material-symbols-outlined text-[var(--md-outline)] text-[18px] select-none">
+            <span className="material-symbols-outlined text-[var(--md-outline)] text-[16px] select-none">
               search
             </span>
             <input
@@ -56,43 +56,44 @@ export default function PageHeader({
               onChange={handleSearch}
               placeholder={searchPlaceholder}
               aria-label="Buscar"
+              className="py-1"
             />
           </div>
         </div>
 
         {/* ── Actions ── */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
 
           {/* Notifications */}
           <button
-            className="topbar-icon-btn notif-badge"
+            className="topbar-icon-btn notif-badge p-1.5"
             onClick={onNotificationsClick}
             aria-label={`Notificaciones${notificationCount ? ` (${notificationCount})` : ''}`}
           >
-            <span className="material-symbols-outlined text-[22px]">notifications</span>
+            <span className="material-symbols-outlined text-[18px]">notifications</span>
           </button>
 
           {/* Help */}
           <button
-            className="topbar-icon-btn"
+            className="topbar-icon-btn p-1.5"
             aria-label="Ayuda"
           >
-            <span className="material-symbols-outlined text-[22px]">help_outline</span>
+            <span className="material-symbols-outlined text-[18px]">help_outline</span>
           </button>
 
           {/* Settings */}
           <button
-            className="topbar-icon-btn"
+            className="topbar-icon-btn p-1.5"
             onClick={onSettingsClick}
             aria-label="Configuración"
           >
-            <span className="material-symbols-outlined text-[22px]">settings</span>
+            <span className="material-symbols-outlined text-[18px]">settings</span>
           </button>
 
           {/* Avatar */}
-          <div className="topbar-avatar" aria-label="Perfil de usuario">
+          <div className="topbar-avatar w-7 h-7 ml-1" aria-label="Perfil de usuario">
             <span
-              className="material-symbols-outlined text-[18px]"
+              className="material-symbols-outlined text-[14px]"
               style={{ color: 'var(--md-primary-container)' }}
             >
               person

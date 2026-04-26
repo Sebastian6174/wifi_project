@@ -69,24 +69,44 @@ export default function TicketCard({ ticket, isSelected, onSelect }) {
 
       {/* Footer */}
       <div className="px-2.5 py-1.5 border-t border-slate-100 flex justify-between items-center">
-        <div className="flex items-center gap-1.5">
-          <div className="size-4 rounded-full bg-[var(--md-primary-container)]/10 flex items-center justify-center flex-shrink-0">
-            <span className="material-symbols-outlined text-[10px]" style={{ color: 'var(--md-primary-container)' }}>person</span>
+        {!ticket.technician ? (
+          <button 
+            onClick={(e) => { e.stopPropagation(); onSelect(ticket.id, true); }}
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+          >
+            <span className="material-symbols-outlined text-[12px]">warning</span>
+            <span className="text-[9px] font-bold uppercase tracking-wide">Sin Asignar - Forzar</span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <div className="size-4 rounded-full bg-[var(--md-primary-container)]/10 flex items-center justify-center flex-shrink-0">
+              <span className="material-symbols-outlined text-[10px]" style={{ color: 'var(--md-primary-container)' }}>person</span>
+            </div>
+            <span className="text-[10px] font-medium text-slate-600 truncate max-w-[80px]">
+              {ticket.technician.name}
+            </span>
           </div>
-          <span className="text-[10px] font-medium text-slate-600">{ticket.technician.name}</span>
-        </div>
+        )}
 
         <div className="flex items-center gap-2">
-          <span className={`text-[9px] font-bold flex items-center gap-0.5 ${TECH_STATUS_COLORS[ticket.technician.status] ?? 'text-slate-400'}`}>
-            {ticket.technician.status}
-            <span className="material-symbols-outlined text-[11px]">{ticket.technician.statusIcon}</span>
-          </span>
+          {ticket.technician ? (
+            <span className={`text-[9px] font-bold flex items-center gap-0.5 ${TECH_STATUS_COLORS[ticket.technician.status] ?? 'text-slate-400'}`}>
+              {ticket.technician.status}
+              <span className="material-symbols-outlined text-[11px]">{ticket.technician.statusIcon}</span>
+            </span>
+          ) : (
+            <span className="text-[9px] font-bold text-amber-500">
+              Requiere Acción
+            </span>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-            className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
+            className="text-[10px] text-slate-400 hover:text-[var(--md-primary-container)] transition-colors"
             aria-label="Ver detalles del ticket"
           >
-            <span className="material-symbols-outlined text-[14px]">{expanded ? 'expand_less' : 'expand_more'}</span>
+            <span className="material-symbols-outlined text-[14px]">
+              {expanded ? 'expand_less' : 'expand_more'}
+            </span>
           </button>
         </div>
       </div>
