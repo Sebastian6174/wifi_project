@@ -1,0 +1,74 @@
+NOMBRE ZONA;DIRECCION;BARRIO;COMUNA;CODIGO;CORREO ELECTR�NICO;LATITUD;LONGITUD;PROVEEDOR CONECTIVIDAD;VELOCIDAD;HORARIOS
+001_ZW Parque Ingenio;Calle 16 con Carrera 83;El Ingenio;17;760032000;wifi@cali.gov.co;3,38625;-76,52961;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+002_ZW Canchas Panamericanas;Carrera 34 con Calle 9;Eucaristico;19;760042388;wifi@cali.gov.co;3,42416;-76,53801;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+003_ZW Parque del Perro;Carrera 34 con Calle 3;San Fernando;19;760043000;wifi@cali.gov.co;3,43592;-76,54555;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+004_ZW Parque San Nicolas;Carrera 6 con Calle 19;San Nicolas;3;760044409;wifi@cali.gov.co;3,45369;-76,52574;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+005_ZW Parque Barrio Obrero;Carrera 10 con Calle 22A;Obrero;9;760044465;wifi@cali.gov.co;3,44941;-76,52065;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+006_ZW Parque Vallado;Carrera 41B con Calle 50;El Vallado;15;760025000;wifi@cali.gov.co;3,4069;-76,50234;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+007_ZW Parque Pizamos;Calle 121 con Carrera 28 D7;Pizamos II;21;760021603;wifi@cali.gov.co;3,40789;-76,47381;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+008_ZW Parque Alfonso Lopez;Calle 72A con Carrera 7DBis;Alfonso Lopez;7;760012054;wifi@cali.gov.co;3,46258;-76,48133;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+009_ZW Polideportivo Los Almendros;Carrera 2 con Calle 62;Paseo Los Almendros;5;760004510;wifi@cali.gov.co;3,47067;-76,49293;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+010_ZW Parque Antonio Nari�o;Carrera 40 con Calle 39;Antonio Narino;16;760022498;wifi@cali.gov.co;3,41577;-76,50848;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+011_ZW Parque Santa Rosa Poblado;Carrera 28 B con Calle 72 Y;Poblado II;13;766015252;wifi@cali.gov.co;3,42244;-76,48789;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+012_ZW Polideportivo Los Naranjos;Calle 77 con Carrera 26 G3;Los Naranjos;14;760016500;wifi@cali.gov.co;3,4329;-76,48069;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+013_ZW Parque Llano Verde;Carrera 46 con Calle 55A;Morichal de Comfandi;15;760025999;wifi@cali.gov.co;3,39598;-76,50628;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+014_ZW Centro Cultural Alto Jordan;Calle 1B Oeste con Carrera 93;Alto Jordan;18;760034168;wifi@cali.gov.co;3,37744;-76,55475;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+015_ZW Centro Cultural Comuna 13;Calle 71 A con Carrera 28D;El Pondaje;13;760015133;wifi@cali.gov.co;3,42853;-76,49725;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+016_ZW Conjunto Habitacional Ramali;Carrera 1 A3 con Calle 85;Calimio Norte;6;760006314;wifi@cali.gov.co;3,48939;-76,48417;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+017_ZW Conjunto Habitacional Rio Cauca;Carrera 23 con Calle 76;Valle Grande;15;760021000;wifi@cali.gov.co;3,44044;-76,47679;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+018_ZW Parque Las Banderas;Carrera 36 con Calle 5;Panamericano;19;760042334;wifi@cali.gov.co;3,43181;-76,54225;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+019_ZW Parque Skate Board;Calle 51 con Carrera 42 D2;Ciudad Cordoba;15;760025144;wifi@cali.gov.co;3,40211;-76,50741;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+020_ZW Parque Petecuy1;Carrera 2E con Calle 73 A;Petecuy I;6;760006511;wifi@cali.gov.co;3,47215;-76,4806;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+021_ZW Parque Alfonso Barberena;Carrera 25 con Transversal 30;Alfonso Barberena;12;760014020;wifi@cali.gov.co;3,434;-76,50962;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+022_ZW Polideportivo Los Farallones;Carrera 72 con Calle 2;Los Farallones;18;760035306;wifi@cali.gov.co;3,39181;-76,55266;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+023_ZW Parque Los Guerreros;Carrera 23 con Calle 80 A;Valle Grande;21;760021011;wifi@cali.gov.co;3,43832;-76,47297;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+024_ZW Museo La Tertualia;Avenida 1 con Calle 5 Oeste;El Penon;2;760045636;wifi@cali.gov.co;3,45044;-76,54515;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+025_ZW Parque San Marino;Carrera 7D con Calle 65;San Marino;7;760011032;wifi@cali.gov.co;3,46076;-76,48807;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+026_ZW Parque La Flora;Avenida 5 N con Calle 47 N;La Flora;2;760046212;wifi@cali.gov.co;3,48417;-76,52317;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+027_ZW Parque Alfonso Bonilla Arag�n;Carrera 28 con Calle 95;Alfonso Bonilla Arag�n;14;7600110027;wifi@cali.gov.co;3,41674;-76,48181;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+028_ZW Parque Yo Amo a Siloe;Parque Yo Amo a Siloe;Siloe;20;7600110031;wifi@cali.gov.co;3,4205;-76,55686;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+029_ZW Centro Cultural Vista Hermosa;Avenida 5 Oeste con Calle 44;Patio Bonito;1;7600110029;wifi@cali.gov.co;3,46237;-76,58815;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+030_ZW Parque Mutis;Avenida 6 Oeste con Calle 17;Terron Colorado;1;7600110030;wifi@cali.gov.co;3,45407;-76,5585;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+031_ZW Cancha Los Azules;Carrera 26 H4 con Calle 125b;Remansos de Comfandi;21;760021432;wifi@cali.gov.co;3,41931;-76,4637;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+032_ZW Paque La Orqueta;Carrera 48 con Calle 1 Oeste;Siloe;20;760040222;wifi@cali.gov.co;3,41923;-76,55392;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+033_ZW Plaza Alameda;Carrera 24 con Calle 9;Alameda;19;760042260;wifi@cali.gov.co;3,43428;-76,5355;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+034_ZW Parque Villa Colombia;Carrera 10 con Calle 50;Villa Colombia;8;760011426;wifi@cali.gov.co;3,45108;-76,50059;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+035_ZW Parque Colseguros;Calle 12 A con Carrera 31;Colseguros Andes;10;760041107;wifi@cali.gov.co;3,42729;-76,52952;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+036_ZW Parque India Elena;Carrera 28 con Calle 17A;Santa Elena;10;760041000;wifi@cali.gov.co;3,42931;-76,52441;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+037_ZW Parque Tequendama;Calle 5 A con Carrera 38 Bis;Tequendama;19;760042445;wifi@cali.gov.co;3,42517;-76,54449;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+038_ZW Parque Sector Amarillo Skate Park;Carrera 26 J con Calle 121 A;Lideres;21;760021465;wifi@cali.gov.co;3,41847;-76,46732;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+039_ZW Biblioteca Daniel Guillard;Carrera 26 T con Calle 72 W;Los Lagos;13;760015300;wifi@cali.gov.co;3,42637;-76,4865;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+040_ZW Polideportivo Torres Comfandi;Calle 57 con Carrera 1 C;Torres de Comfandi;5;760002999;wifi@cali.gov.co;3,4743;-76,49963;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+041_ZW Parque Junin;Carrera 24 - Calle 12A;Junin;9;760042043;wifi@cali.gov.co;3,431926;-76,528809;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+042_ZW Parque Mariano Ramos;Calle 40 Carrera 47;Mariano Ramos;16;760024232;wifi@cali.gov.co;3,4059797;-76,517618;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+043_ZW Polideportivo Ricardo Balcazar;Carrera 26 I # D71A-25;Ricardo Balcazar;13;760015084;wifi@cali.gov.co;3,4348522;-76,492793;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+044_ZW Polideportivo San Benito;Carrera 27 Calle 32;San Benito;11;760014023;wifi@cali.gov.co;3,4307035;-76,5122692;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+045_ZW Parque Santa Anita;Carrera 53 Calle 11 y 11A;Santa Anita;17;760036999;wifi@cali.gov.co;3,408384;-76,537887;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+046_ZW Sebastian Belalcazar;Carrera 2a #5 Oeste-2 a 5 Oeste-202;San Antonio;2;760044638;wifi@cali.gov.co;3,4491422;-76,54522;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+047_ZW Parque del Mico;Calle 30 Carrera 32A;La primavera;11;760013328;wifi@cali.gov.co;3,424473;-76,5146042;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+048_ZW Parque Cien Palos;Carrera 21 Calle 17;Manuel Maria Buenaventura;9;760042138;wifi@cali.gov.co;3,4382524;-76,5232808;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+049_ZW Cerro 3 Cruces;Cerro Tres Cruces Zona Ejercicios;Normandia/Montebello;99;760009;wifi@cali.gov.co;3,4673678;-76,5449955;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+050_ZW Parque Calima;Calle 66N  Carrera 4A Norte;Calima;4;760002036;wifi@cali.gov.co;3,484254;-76,5012764;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+051_ZW Parque La Mecerd;Avenida 2E Norte Calle 47BN y 49BN;La Merced;2;760050156;wifi@cali.gov.co;3,480722;-76,513002;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+052_ZW Puente de Colores;Calle 73 Carrera 28-4;Poblado II;13;760015261;wifi@cali.gov.co;3,42065;-76,48699;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+053_ZW Polideportivo Laureano Gomez;Carrera 30A Calle 50;Laureano G�mez;15;760023275;wifi@cali.gov.co;3,41385;-76,49547;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+054_ZW El Diamante;Calle 40 con Carrera 31;El Diamante;13;760022267;wifi@cali.gov.co;3,42038;-76,5023;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+055_ZW Polideportivo Petecuy;Calle 74 Carrera 1C3;Petecuy II;6;760006402;wifi@cali.gov.co;3,47938;-76,48235;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+056_ZW Comuna 16;Calle 38 Carrera 41g detras del  CALI 16;Uni�n de Vivienda Popular;16;760024027;wifi@cali.gov.co;3,413281;-76,512614;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+057_La Castilla;Cancha Principal y Cancha Multiple lado Escuela Publica;La Castilla;99;760009;wifi@cali.gov.co;3,493181;-76,576443;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+058_La Elvira;Cancha Principal Frente IPS Rural y Cancha Multiple Cerca a Iglesia San Jose;La Elvira;99;760009;wifi@cali.gov.co;3,5215;-76,59833;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+059_El Saladito;Parque Infantil a la Entrada del Saladito;El Saladito;99;760009;wifi@cali.gov.co;3,481991;-76,606655;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+060_Felidia;Parque principal Iglesia y Plazoleta Central;Felidia;99;760009;wifi@cali.gov.co;3,467887;-76,630043;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+061_La Leonera;Cancha Principal en Ambos Extremos;La Leonera;99;760008;wifi@cali.gov.co;3,45545;-76,63592;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+062_Pichinde;Cancha Iglesia y Cancha Multiple Frente a Escuela Publica;Pichinde;99;760008;wifi@cali.gov.co;3,439863;-76,617903;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+063_Los Andes;Cancha Futbol/Juegos y Escuela Publica Rural;Los Andes;99;760008;wifi@cali.gov.co;3,42387;-76,61732;EMCALI;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+065_ZW Centro Cultural Comuna 20;Cra 54 Oeste # 10-28;Brisas de Mayo;20;760008;wifi@cali.gov.co;341604;-7656326;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+066_Pance;IPS Pance - ESE Ladera;Pance;99;760008;wifi@cali.gov.co;3,3294204;-76,6349227;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+067_Montebello;Juegos Infantiles del Parque Central Montebello Cruce Y Parada Transporte;Montebello;99;760008;wifi@cali.gov.co;3,484735;-76,549843;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+068_Golondrinas;Parque Los Pitufos;Golondrinas;99;760008;wifi@cali.gov.co;3,5026417;-76,5497598;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+069_La Paz;Sector Biblioteca P�blica La Paz - Centro de Salud;La Paz;99;760008;wifi@cali.gov.co;3,5199963;-76,5702748;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+070_La Buitrera;Cancha M�ltiple Polideportivo La Buitrera;La Buitrera;99;760008;wifi@cali.gov.co;3,3643378;-76,5625233;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+071_Villacarmelo;Parque Principal Villacarmelo;Villacarmelo;99;760008;wifi@cali.gov.co;3,3785393;-76,6166714;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+072_Hormiguero;Cancha Principal El Hormiguero;Hormiguero;99;760008;wifi@cali.gov.co;3,3124094;-76,4798846;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+074_ZW Parque Pacifico;Av 2Nte Cll 31N;Prados del Norte;2;760008;wifi@cali.gov.co;3,4637613;-76,522475;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
+075_ZW Parque Longitudinal Poblado II;Cancha Multiple Cll 72W con Cra 28C;Poblado 2;13;760008;wifi@cali.gov.co;3,4215662;-76,49002806;REMI-ALCALDIA;30 MB. Canal dedicado;24 horas. 7 dias a la semana.
