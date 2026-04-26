@@ -1,11 +1,10 @@
 import logging
-import json
 
 from fastapi import APIRouter, HTTPException
 
 from app.core.gemini_config import generate_gemini_response
 from app.schemas.agent_schema import AgentInput, AgentPromptRequest, AgentPromptResponse
-from app.services.agent_tools import available_tools_text, execute_tools_for_prompt
+from app.services.langgraph_workflow import run_multiagent_prompt
 
 router = APIRouter()
 logger = logging.getLogger("app.agents")
@@ -35,28 +34,18 @@ async def _run_agent(request: AgentPromptRequest) -> AgentPromptResponse:
         logger.warning("Tipo de agente no soportado: %s", request.agent_type)
         raise HTTPException(status_code=400, detail="Tipo de agente no soportado.")
 
-    tool_results = []
-    if request.agent_type == "conversacional":
-        tool_results = await execute_tools_for_prompt(request.prompt)
-
-    tools_block = (
-        f"Herramientas disponibles:\n{available_tools_text()}\n\n"
-        "Resultados de tools ejecutadas para esta consulta:\n"
-        f"{json.dumps(tool_results, ensure_ascii=False, default=str)}"
-        if request.agent_type == "conversacional"
-        else "Sin uso de tools para este tipo de agente."
-    )
-
-    full_prompt = (
-        f"{system_prompt}\n\n"
-        f"{tools_block}\n\n"
-        f"Contexto:\n{request.context or 'Sin contexto adicional'}\n\n"
-        f"Consulta del usuario:\n{request.prompt}"
-    )
-
     try:
-        logger.info("Ejecutando decision de agente=%s con Gemini", request.agent_type)
-        answer = await generate_gemini_response(full_prompt)
+        if request.agent_type == "conversacional":
+            logger.info("Ejecutando flujo LangGraph multi-agente para consulta conversacional")
+            answer = await run_multiagent_prompt(request.prompt, request.context)
+        else:
+            full_prompt = (
+                f"{system_prompt}\n\n"
+                f"Contexto:\n{request.context or 'Sin contexto adicional'}\n\n"
+                f"Consulta del usuario:\n{request.prompt}"
+            )
+            logger.info("Ejecutando decision de agente=%s con Gemini", request.agent_type)
+            answer = await generate_gemini_response(full_prompt)
         logger.info("Respuesta generada para agente=%s", request.agent_type)
         return AgentPromptResponse(agent_type=request.agent_type, answer=answer)
     except Exception as exc:

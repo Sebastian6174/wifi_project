@@ -6,3 +6,5 @@ pandas
 pydantic
 psycopg2
 sqlalchemy
+langgraph
+langchain-core
