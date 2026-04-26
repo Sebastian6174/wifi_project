@@ -54,41 +54,61 @@ export default function ActiveTicketsPanel({ tickets: initialTickets = [] }) {
   };
 
   return (
-    <aside className="flex flex-col gap-3 h-full">
+    <div className="flex flex-col gap-4">
       {/* Panel header */}
-      <div className="flex items-center justify-between flex-shrink-0">
-        <h3 className="text-sm font-bold flex items-center gap-1.5" style={{ color: 'var(--md-primary-container)' }}>
-          <span className="material-symbols-outlined text-[18px]">confirmation_number</span>
-          Active Tickets
-        </h3>
-        <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--md-primary-container)]/10 text-[var(--md-primary-container)]">
-          Live · {tickets.length}
-        </span>
+      <div className="flex justify-between items-end border-b border-slate-200 pb-3">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-[20px] text-[var(--md-primary-container)]">confirmation_number</span>
+            <h3 className="text-base font-bold text-slate-800">
+              Active Tickets
+            </h3>
+            <span className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full bg-[var(--md-primary-container)]/10 text-[var(--md-primary-container)]">
+              Live · {tickets.length}
+            </span>
+          </div>
+
+          {/* Severity filter (Horizontal) */}
+          <div className="hidden sm:flex gap-1 border-l border-slate-200 pl-4">
+            {SEVERITY_FILTER.map(s => (
+              <button
+                key={s}
+                onClick={() => setSeverityFilter(s)}
+                className={`text-[10px] font-bold capitalize px-3 py-1 rounded-full transition-colors ${
+                  severityFilter === s
+                    ? 'bg-[var(--md-primary-container)] text-white shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
+                }`}
+              >
+                {s === 'All' ? 'All' : s}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Severity filter */}
-      <div className="flex gap-1 flex-shrink-0">
+      <div className="sm:hidden flex gap-1 flex-wrap">
         {SEVERITY_FILTER.map(s => (
           <button
             key={s}
             onClick={() => setSeverityFilter(s)}
-            className={`text-[10px] font-bold capitalize px-2 py-0.5 rounded-full transition-colors ${
+            className={`text-[10px] font-bold capitalize px-3 py-1 rounded-full transition-colors ${
               severityFilter === s
-                ? 'bg-[var(--md-primary-container)] text-white'
-                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                ? 'bg-[var(--md-primary-container)] text-white shadow-sm'
+                : 'bg-white border border-slate-200 text-slate-500 hover:bg-slate-50'
             }`}
           >
-            {s === 'All' ? 'All' : s}
+            {s === 'All' ? 'Todos' : s}
           </button>
         ))}
       </div>
 
-      {/* Scrollable list */}
-      <div className="flex flex-col gap-2 overflow-y-auto pr-1 flex-1">
+      {/* Grid List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-slate-400 text-sm">
-            <span className="material-symbols-outlined text-3xl mb-2">check_circle</span>
-            No tickets for this filter
+          <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+            <span className="material-symbols-outlined text-4xl mb-3">check_circle</span>
+            <span className="text-sm font-medium">No tickets for this filter</span>
           </div>
         ) : (
           filtered.map(ticket => (
@@ -108,6 +128,6 @@ export default function ActiveTicketsPanel({ tickets: initialTickets = [] }) {
         onClose={() => setTicketToAssign(null)}
         onAssign={handleForceAssign}
       />
-    </aside>
+    </div>
   );
 }

@@ -7,7 +7,7 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   optimizeDeps: {
-    force: true, // Forces dependency pre-bundling on restart to fix 'Invalid Hook Call'
+    force: true, // Forces dependency pre-bundling on restart to fix 'react-is' missing module
   },
   plugins: [
     tailwindcss(),

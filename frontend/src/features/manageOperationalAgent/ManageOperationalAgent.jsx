@@ -47,25 +47,31 @@ export default function ManageOperationalAgent() {
         </div>
       </div>
 
-      {/* ── Main Layout: Map & KPIs (Left) | Tickets (Right) ── */}
-      <div className="grid grid-cols-12 gap-5 items-start">
+      {/* ── Main Layout: Stacked Full Width ── */}
+      <div className="flex flex-col gap-6">
         
-        {/* Left Column (8 cols): Map -> KPIs -> Workforce */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
+        {/* 1. Map */}
+        <div className="w-full">
           <OperationalMap
             accessPoints={ACCESS_POINTS}
             onlineCount={STATUS_SUMMARY.online}
             anomalyCount={STATUS_SUMMARY.anomaly + STATUS_SUMMARY.offline}
           />
-
-          <PerformanceMetrics kpis={KPIS} />
-          
-          <WorkforceManagementCard />
         </div>
 
-        {/* Right Column (4 cols): Active Tickets */}
-        <div className="col-span-12 lg:col-span-4 sticky top-5" style={{ height: 'calc(100vh - 100px)' }}>
+        {/* 2. Active Tickets Grid */}
+        <div className="w-full mt-2">
           <ActiveTicketsPanel tickets={TICKETS} />
+        </div>
+
+        {/* 3. Performance Metrics */}
+        <div className="w-full mt-2">
+          <PerformanceMetrics kpis={KPIS} />
+        </div>
+        
+        {/* 4. Workforce Management CTA */}
+        <div className="w-full mt-2">
+          <WorkforceManagementCard />
         </div>
       </div>
     </div>
