@@ -1,6 +1,19 @@
-export default function TicketHeaderStats({ ticket }) {
+import { useState } from "react";
+
+export default function TicketHeaderStats({ ticket, onComplete }) {
+  const [finishing, setFinishing] = useState(false);
+
+  const handleFinish = () => {
+    setFinishing(true);
+    // Simulation of finishing task
+    setTimeout(() => {
+      onComplete?.();
+      setFinishing(false);
+    }, 1500);
+  };
+
   return (
-    <div className="max-w-[1200px] mx-auto w-full mb-6">
+    <div className="max-w-[1200px] mx-auto w-full mb-6 relative z-10">
       {/* Breadcrumbs & Focus Actions */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
@@ -9,18 +22,28 @@ export default function TicketHeaderStats({ ticket }) {
             <span className="material-symbols-outlined text-[12px]">chevron_right</span>
             <span>Tickets</span>
             <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-            <span className="text-[var(--md-primary-container)]">TK-2024-089</span>
+            <span className="text-[var(--md-primary-container)]">{ticket.id}</span>
           </div>
           <h1 className="text-xl md:text-2xl font-black text-[#003036] tracking-tight">Detalle de Ticket de Mantenimiento</h1>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-xs text-[var(--md-primary-container)] shadow-sm hover:shadow-md transition-all active:scale-95">
+          <button className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 rounded-xl font-bold text-xs text-[var(--md-primary-container)] shadow-sm hover:bg-slate-50 transition-all active:scale-95">
             <span className="material-symbols-outlined text-[16px]">upload_file</span>
             Subir Evidencia
           </button>
-          <button className="flex items-center gap-1.5 px-4 py-2 bg-[var(--md-primary-container)] text-white rounded-xl font-bold text-xs shadow-lg shadow-teal-900/20 hover:bg-[#003036] transition-all active:scale-95">
-            <span className="material-symbols-outlined text-[16px]">check_circle</span>
-            Finalizar Tarea
+          <button 
+            onClick={handleFinish}
+            disabled={finishing}
+            className={`flex items-center gap-1.5 px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all active:scale-95 ${
+              finishing 
+                ? "bg-emerald-500 text-white cursor-wait" 
+                : "bg-[var(--md-primary-container)] text-white shadow-teal-900/20 hover:bg-[#003036]"
+            }`}
+          >
+            <span className={`material-symbols-outlined text-[16px] ${finishing ? 'animate-spin' : ''}`}>
+              {finishing ? 'sync' : 'check_circle'}
+            </span>
+            {finishing ? 'Procesando...' : 'Finalizar Tarea'}
           </button>
         </div>
       </div>
