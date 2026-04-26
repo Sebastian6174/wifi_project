@@ -1,11 +1,9 @@
-import "./App.css";
+import AppRouter from './routes/AppRouter';
 
-function App() {
-  return (
-    <>
-      <h1>hello world</h1>
-    </>
-  );
+/**
+ * App.jsx — root component.
+ * Delegates all routing logic to AppRouter; keeps this file clean.
+ */
+export default function App() {
+  return <AppRouter />;
 }
-
-export default App;
