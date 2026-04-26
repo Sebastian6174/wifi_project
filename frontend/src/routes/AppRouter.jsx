@@ -16,6 +16,7 @@ import LoginPage               from '../pages/LoginPage';
 import OperationalAgentPage    from '../pages/OperationalAgentPage';
 import ConversationalAgentPage from '../pages/ConversationalAgentPage';
 import StrategicAgentPage      from '../pages/StrategicAgentPage';
+import TechniciansPage         from '../pages/TechniciansPage';
 import DashboardLayout         from '../shared/components/DashboardLayout';
 import ProtectedRoute          from '../shared/components/ProtectedRoute';
 
@@ -41,6 +42,7 @@ export default function AppRouter() {
           <Route path="operational"    element={<OperationalAgentPage />} />
           <Route path="conversational" element={<ConversationalAgentPage />} />
           <Route path="strategic"      element={<StrategicAgentPage />} />
+          <Route path="technicians"    element={<TechniciansPage />} />
         </Route>
 
         {/* Fallback */}

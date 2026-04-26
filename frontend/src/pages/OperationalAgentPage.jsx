@@ -1,12 +1,7 @@
 /**
  * OperationalAgentPage.jsx
- * Displays the Operational Agent dashboard.
- * Responsibilities:
- *  - Real-time anomaly & fault detection on public WiFi APs
- *  - Automatic prioritized work-order creation
- *  - Technician assignment without human intervention
- *
- * Feature owner: features/manageOperationalAgent
+ * Route entry for /dashboard/operational.
+ * Delegates all UI and logic to the ManageOperationalAgent feature.
  */
 
 import ManageOperationalAgent from '../features/manageOperationalAgent/ManageOperationalAgent';

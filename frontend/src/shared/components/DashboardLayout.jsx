@@ -1,42 +1,49 @@
 /**
  * DashboardLayout.jsx  (shared)
- * Persistent sidebar + top header shell used by all protected pages.
- * Child pages are rendered via <Outlet />.
+ * Full dashboard shell — TopBar + Sidebar + main Outlet.
+ *
+ * Sidebar design (image 1):
+ *   - Network Control header with security icon
+ *   - Three agent nav links (Operative, Conversational, Strategic)
+ *   - Report Incident CTA button at the bottom
+ *   - System Health + Support footer links
+ *   NOTE: "Zonas de Acceso" section intentionally omitted per requirements.
+ *
+ * TopBar design (image 2):
+ *   - Delegated to <PageHeader /> component
  */
 
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { Wifi, AlertTriangle, MessageSquare, BarChart2, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import useAuth from '../hooks/useAuth';
+import PageHeader from './PageHeader';
 
+/* ── Navigation items ── */
 const NAV_ITEMS = [
   {
-    to:    '/dashboard/operational',
-    label: 'Operational Agent',
-    icon:  AlertTriangle,
-    color: 'text-tertiary-600',
-    accent: 'agent-operational',
+    to:       '/dashboard/operational',
+    label:    'Operative Agent',
+    icon:     'settings_input_antenna',
+    iconFill: false,
   },
   {
-    to:    '/dashboard/conversational',
-    label: 'Conversational Agent',
-    icon:  MessageSquare,
-    color: 'text-secondary-600',
-    accent: 'agent-conversational',
+    to:       '/dashboard/conversational',
+    label:    'Conversational AI',
+    icon:     'forum',
+    iconFill: true,
   },
   {
-    to:    '/dashboard/strategic',
-    label: 'Strategic Agent',
-    icon:  BarChart2,
-    color: 'text-primary-400',
-    accent: 'agent-strategic',
+    to:       '/dashboard/strategic',
+    label:    'Strategic Dashboard',
+    icon:     'query_stats',
+    iconFill: false,
   },
 ];
 
 export default function DashboardLayout() {
   const { logout } = useAuth();
   const navigate   = useNavigate();
-  const [open, setOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -44,96 +51,118 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div className="page-container flex-row min-h-screen bg-[var(--color-surface)]">
+    <div className="min-h-screen bg-[var(--md-background)] text-[var(--md-on-surface)]">
 
-      {/* ── Mobile overlay ── */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/50 z-20 lg:hidden"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {/* ── Top App Bar ── */}
+      <PageHeader />
 
-      {/* ── Sidebar ── */}
-      <aside
-        className={[
-          'fixed top-0 left-0 h-full w-64 bg-[var(--color-primary-900)] flex flex-col z-30',
-          'transition-transform duration-300 ease-in-out',
-          open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        ].join(' ')}
-      >
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-5 py-6 border-b border-white/10">
-          <div className="w-9 h-9 rounded-lg bg-[var(--color-secondary-600)] flex items-center justify-center animate-pulse-glow">
-            <Wifi size={20} className="text-[var(--color-primary-900)]" />
+      <div className="flex pt-16 min-h-screen">
+
+        {/* ── Mobile overlay ── */}
+        {mobileOpen && (
+          <div
+            className="fixed inset-0 bg-black/40 z-30 lg:hidden"
+            onClick={() => setMobileOpen(false)}
+          />
+        )}
+
+        {/* ── Sidebar ── */}
+        <aside
+          className={[
+            'sidebar sticky top-16 h-[calc(100vh-64px)]',
+            /* mobile: slide in/out */
+            'fixed lg:static z-40 transition-transform duration-300 ease-in-out',
+            mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+          ].join(' ')}
+        >
+          {/* Brand header */}
+          <div className="px-6 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="sidebar-brand-icon">
+                <span
+                  className="material-symbols-outlined text-white text-[22px]"
+                  style={{ fontVariationSettings: "'FILL' 1" }}
+                >
+                  security
+                </span>
+              </div>
+              <div>
+                <p className="sidebar-brand-title">Network Control</p>
+                <p className="sidebar-brand-sub">Santiago de Cali</p>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-white font-bold text-sm leading-tight">WiFi Inteligente</p>
-            <p className="text-[var(--color-primary-300)] text-[11px]">Cali · Dashboard</p>
-          </div>
-        </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-primary-400)] px-3 mb-3">
-            AI Agents
-          </p>
-          {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              className={({ isActive }) =>
-                ['nav-item', isActive ? 'active' : ''].join(' ')
-              }
-              onClick={() => setOpen(false)}
+          {/* Navigation */}
+          <nav className="flex-1 flex flex-col gap-0.5 overflow-y-auto">
+            {NAV_ITEMS.map(({ to, label, icon, iconFill }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  ['dash-nav-link', isActive ? 'active' : ''].join(' ')
+                }
+                onClick={() => setMobileOpen(false)}
+              >
+                <span
+                  className="material-symbols-outlined text-[22px]"
+                  style={iconFill ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                >
+                  {icon}
+                </span>
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Bottom section */}
+          <div className="mt-auto px-6 flex flex-col gap-4 pt-6">
+            {/* Report Incident CTA */}
+            <button className="report-incident-btn">
+              Report Incident
+            </button>
+
+            {/* Footer links */}
+            <div className="border-t border-slate-100 pt-4 flex flex-col gap-2">
+              <a href="#" className="sidebar-footer-link">
+                <span className="material-symbols-outlined text-[20px]">analytics</span>
+                System Health
+              </a>
+              <a href="#" className="sidebar-footer-link">
+                <span className="material-symbols-outlined text-[20px]">contact_support</span>
+                Support
+              </a>
+              <button
+                onClick={handleLogout}
+                className="sidebar-footer-link w-full text-left hover:!text-red-500"
+              >
+                <span className="material-symbols-outlined text-[20px]">logout</span>
+                Sign Out
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        {/* ── Main content ── */}
+        <main className="flex-1 flex flex-col relative h-[calc(100vh-64px)] overflow-auto salsa-pattern">
+          {/* Mobile menu toggle */}
+          <div className="lg:hidden p-4">
+            <button
+              className="topbar-icon-btn border border-slate-200"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Abrir menú"
             >
-              <Icon size={18} />
-              <span>{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Logout */}
-        <div className="px-3 py-4 border-t border-white/10">
-          <button
-            onClick={handleLogout}
-            className="nav-item w-full text-[var(--color-neutral-400)] hover:text-red-400 hover:bg-red-500/10"
-          >
-            <LogOut size={18} />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* ── Main area ── */}
-      <div className="flex-1 flex flex-col lg:ml-64">
-
-        {/* Top bar */}
-        <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-[var(--color-border)] px-4 py-3 flex items-center justify-between">
-          <button
-            className="lg:hidden btn btn-icon btn-outlined"
-            onClick={() => setOpen(!open)}
-            aria-label="Toggle menu"
-          >
-            {open ? <X size={18} /> : <Menu size={18} />}
-          </button>
-
-          <div className="hidden lg:flex items-center gap-2">
-            <Wifi size={16} className="text-[var(--color-primary-600)]" />
-            <span className="text-sm font-semibold text-[var(--color-primary-700)]">
-              Zonas WiFi Públicas · Cali
-            </span>
+              <span className="material-symbols-outlined">
+                {mobileOpen ? 'close' : 'menu'}
+              </span>
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 ml-auto">
-            <span className="badge badge-success">Sistema activo</span>
+          <div className="flex-1 p-6 animate-fade-in">
+            <Outlet />
           </div>
-        </header>
-
-        {/* Page content */}
-        <main className="flex-1 p-6 animate-fade-in">
-          <Outlet />
         </main>
+
       </div>
     </div>
   );

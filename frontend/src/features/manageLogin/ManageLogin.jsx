@@ -1,14 +1,23 @@
 /**
  * ManageLogin.jsx
- * Orchestrator component for the Login / Home feature.
- * Imports from: components/, hooks/, utils/
+ * Orchestrator for the Login / Home feature.
+ * Composes LoginVisualPanel (left) + LoginForm (right)
+ * into the full-screen two-column layout.
  */
 
-import LoginForm from './components/LoginForm';
+import LoginVisualPanel from './components/LoginVisualPanel';
+import LoginForm        from './components/LoginForm';
 
 export default function ManageLogin() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[var(--color-primary-950)] via-[var(--color-primary-800)] to-[var(--color-primary-700)] p-4">
+    <div
+      className="h-screen overflow-hidden flex font-montserrat"
+      style={{ backgroundColor: 'var(--md-background)', color: 'var(--md-on-background)' }}
+    >
+      {/* Left — city image panel (desktop only) */}
+      <LoginVisualPanel />
+
+      {/* Right — login form panel */}
       <LoginForm />
     </div>
   );
