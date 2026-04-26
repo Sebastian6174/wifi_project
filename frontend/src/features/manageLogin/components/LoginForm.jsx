@@ -30,7 +30,13 @@ export default function LoginForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const ok = await login({ ...form, role });
-    if (ok) navigate("/dashboard");
+    if (ok) {
+      if (role === "technician") {
+        navigate("/technician");
+      } else {
+        navigate("/dashboard");
+      }
+    }
   };
 
   /* ── styles mapped from MD3 vars ── */

@@ -17,6 +17,8 @@ import OperationalAgentPage    from '../pages/OperationalAgentPage';
 import ConversationalAgentPage from '../pages/ConversationalAgentPage';
 import StrategicAgentPage      from '../pages/StrategicAgentPage';
 import TechniciansPage         from '../pages/TechniciansPage';
+import ActiveTicketPage        from '../pages/ActiveTicketPage';
+import TicketHistoryPage      from '../pages/TicketHistoryPage';
 import DashboardLayout         from '../shared/components/DashboardLayout';
 import ProtectedRoute          from '../shared/components/ProtectedRoute';
 
@@ -43,6 +45,26 @@ export default function AppRouter() {
           <Route path="conversational" element={<ConversationalAgentPage />} />
           <Route path="strategic"      element={<StrategicAgentPage />} />
           <Route path="technicians"    element={<TechniciansPage />} />
+        </Route>
+
+        {/* Technician routes */}
+        <Route path="/technician">
+          <Route
+            index
+            element={
+              <ProtectedRoute>
+                <ActiveTicketPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="history"
+            element={
+              <ProtectedRoute>
+                <TicketHistoryPage />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* Fallback */}
