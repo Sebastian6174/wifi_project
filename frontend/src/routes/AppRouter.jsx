@@ -12,6 +12,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
+import LandingPage           from '../pages/LandingPage';
 import LoginPage               from '../pages/LoginPage';
 import OperationalAgentPage    from '../pages/OperationalAgentPage';
 import ConversationalAgentPage from '../pages/ConversationalAgentPage';
@@ -30,7 +31,8 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
         {/* Protected — requires authentication */}
         <Route
