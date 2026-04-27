@@ -72,10 +72,10 @@ export default function TicketCard({ ticket, isSelected, onSelect }) {
         {!ticket.technician ? (
           <button 
             onClick={(e) => { e.stopPropagation(); onSelect(ticket.id, true); }}
-            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-emerald-200 text-emerald-600 hover:bg-emerald-50 transition-colors shadow-sm"
           >
-            <span className="material-symbols-outlined text-[12px]">warning</span>
-            <span className="text-[9px] font-bold uppercase tracking-wide">Sin Asignar - Forzar</span>
+            <span className="material-symbols-outlined text-[12px]">assignment_ind</span>
+            <span className="text-[9px] font-bold uppercase tracking-wide">Forzar Asignación</span>
           </button>
         ) : (
           <div className="flex items-center gap-1.5">

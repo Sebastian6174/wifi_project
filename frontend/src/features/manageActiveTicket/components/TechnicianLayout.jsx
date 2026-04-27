@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuth from "../../../shared/hooks/useAuth";
+import PageHeader from "../../../shared/components/PageHeader";
 
 export default function TechnicianLayout({ children }) {
   const location = useLocation();
@@ -15,37 +16,11 @@ export default function TechnicianLayout({ children }) {
   return (
     <div className="bg-[#f8f9ff] font-public-sans text-[#0b1c30] min-h-screen selection:bg-[var(--md-primary-container)] selection:text-white">
       {/* Top Navigation Bar */}
-      <header className="fixed top-0 left-0 w-full flex justify-between items-center px-4 h-14 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-sm z-50">
-        <div className="flex items-center gap-2">
-          <span
-            className="material-symbols-outlined text-[var(--md-primary-container)] text-[20px]"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            settings_input_antenna
-          </span>
-          <span className="text-base font-bold text-[#004851] tracking-tight">
-            Cali-Tech WiFi
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="p-1.5 rounded-full hover:bg-slate-100 transition-colors">
-            <span className="material-symbols-outlined text-[20px]">
-              notifications
-            </span>
-          </button>
-          <div className="h-7 w-7 rounded-full bg-[var(--md-primary-container)] overflow-hidden">
-            <img
-              alt="Tech"
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp3NQnL1fD97AyL66mIuZgmlPcCLIHQxT_Joix432DVoVm-IAh5nSJ9aFMwBqvPsoMPN8T7Dmr-oLnx30suGInqXxWJJeCRL0wwCyjjZeZmsrLCMmPvPcNJj5v4qoNxv4ZiOdKMT6PwrcdGpybfzVS8Lu1xq7u_sV5U4p9qiikRqgWYGu49kLRchUYz5lWYAN1WzS1tBMqcm1lvAdZtkGrDVn_jR3y9AolCAibNGR2z2_TcRndjbb4P2LRSzKUPdltioXkkTN2_Is"
-            />
-          </div>
-        </div>
-      </header>
+      <PageHeader title="Cali-Tech WiFi" />
 
-      <div className="flex pt-14 min-h-screen">
+      <div className="flex pt-16 min-h-screen">
         {/* Sidebar Navigation */}
-        <aside className="hidden md:flex flex-col w-52 fixed h-[calc(100vh-56px)] bg-white border-r border-slate-200/50 p-4 z-40">
+        <aside className="hidden md:flex flex-col w-52 fixed top-16 h-[calc(100vh-64px)] bg-white border-r border-slate-200/50 p-4 z-40">
           <nav className="space-y-1.5 flex-grow">
             <div className="mb-6">
               <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-3 px-2">

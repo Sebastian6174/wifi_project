@@ -67,7 +67,7 @@ export default function DashboardLayout() {
         {/* ── Sidebar ── */}
         <aside
           className={[
-            "sidebar sticky top-12 h-[calc(100vh-48px)]",
+            "sidebar sticky top-16 h-[calc(100vh-64px)]",
             /* mobile: slide in/out */
             "fixed lg:static z-40 transition-transform duration-300 ease-in-out",
             mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",

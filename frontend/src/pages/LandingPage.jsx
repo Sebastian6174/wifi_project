@@ -15,7 +15,6 @@ export default function LandingPage() {
 
   return (
     <div className="bg-[#f8fafc] text-[var(--md-on-background)] font-sans selection:bg-[#004851]/20 flex flex-col overflow-x-hidden relative">
-      
       {/* ── Accessibility ── */}
       <AccessibilityMenu />
 
@@ -48,7 +47,11 @@ export default function LandingPage() {
       {/* ── Hero Section ── */}
       <section className="relative flex items-center justify-center min-h-screen overflow-hidden bg-black px-6">
         <div className="absolute inset-0 z-0">
-          <img src={heroBg} className="w-full h-full object-cover" alt="Hero Cali" />
+          <img
+            src={heroBg}
+            className="w-full h-full object-cover"
+            alt="Hero Cali"
+          />
           <div className="absolute inset-0 bg-black/70" />
         </div>
 
@@ -85,17 +88,28 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto w-full">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#004851]/10 text-[#004851] font-bold text-[11px] uppercase tracking-wider mb-6 shadow-sm">
-              <span className="material-symbols-outlined text-[14px]">public</span>
+              <span className="material-symbols-outlined text-[14px]">
+                public
+              </span>
               Infraestructura Digital
             </div>
             <h3 className="text-3xl sm:text-5xl font-black text-[#001a1d] tracking-tight mb-6">
-              Cali te conecta con el <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#004851] to-teal-500">futuro</span>
+              Cali te conecta con el{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#004851] to-teal-500">
+                futuro
+              </span>
             </h3>
             <p className="text-slate-600 text-sm sm:text-lg max-w-3xl mx-auto leading-relaxed mb-4">
-              El proyecto "Cali Conecta" liderado por la Gobernación, busca reducir la brecha digital desplegando una red WiFi gratuita y de alta velocidad en los espacios más transitados y emblemáticos de la ciudad.
+              El proyecto "Cali Conecta" liderado por la Gobernación, busca
+              reducir la brecha digital desplegando una red WiFi gratuita y de
+              alta velocidad en los espacios más transitados y emblemáticos de
+              la ciudad.
             </p>
             <p className="text-slate-500 text-xs sm:text-sm max-w-2xl mx-auto leading-relaxed">
-              No es solo internet; es una iniciativa integral que incorpora inteligencia artificial para guiar a los ciudadanos y turistas, asegurando una conexión estable para el estudio, el trabajo y el esparcimiento al aire libre.
+              No es solo internet; es una iniciativa integral que incorpora
+              inteligencia artificial para guiar a los ciudadanos y turistas,
+              asegurando una conexión estable para el estudio, el trabajo y el
+              esparcimiento al aire libre.
             </p>
           </div>
 
@@ -167,7 +181,10 @@ export default function LandingPage() {
       </section>
 
       {/* ── Map Section ── */}
-      <section id="mapa" className="py-16 px-6 relative z-10 bg-[#f8fafc] min-h-screen flex flex-col justify-center">
+      <section
+        id="mapa"
+        className="py-16 px-6 relative z-10 bg-[#f8fafc] min-h-screen flex flex-col justify-center"
+      >
         <div className="max-w-5xl mx-auto w-full">
           <div className="flex flex-col sm:flex-row items-center sm:items-end justify-between gap-4 mb-8">
             <div>
@@ -183,7 +200,8 @@ export default function LandingPage() {
                 </h3>
               </div>
               <p className="text-slate-500 text-sm max-w-lg">
-                Nuestra red detecta tu ubicación en tiempo real. Utiliza el mapa interactivo para encontrar tu punto de acceso óptimo.
+                Nuestra red detecta tu ubicación en tiempo real. Utiliza el mapa
+                interactivo para encontrar tu punto de acceso óptimo.
               </p>
             </div>
           </div>
@@ -235,7 +253,7 @@ export default function LandingPage() {
                 >
                   smart_toy
                 </span>
-                <span className="font-bold text-xs">Asistente IA Caleño</span>
+                <span className="font-bold text-xs">Asistente IA Wifi</span>
               </div>
               <button
                 onClick={() => setIsChatOpen(false)}

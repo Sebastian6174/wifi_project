@@ -16,6 +16,7 @@
 
 import { useState } from 'react';
 import useAuth from '../hooks/useAuth';
+import NotificationMenu from './NotificationMenu';
 
 export default function PageHeader({
   title               = 'Cali-Tech Vision',
@@ -26,12 +27,9 @@ export default function PageHeader({
   onSettingsClick,
 }) {
   const { user } = useAuth();
-  const [query, setQuery] = useState('');
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-  const handleSearch = (e) => {
-    setQuery(e.target.value);
-    onSearchChange?.(e.target.value);
-  };
+
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -44,21 +42,6 @@ export default function PageHeader({
         {/* ── Brand ── */}
         <div className="flex items-center gap-4">
           <span className="topbar-brand">{title}</span>
-
-          {/* Search — hidden on mobile */}
-          <div className="topbar-search hidden md:flex">
-            <span className="material-symbols-outlined text-[var(--md-outline)] text-[16px] select-none">
-              search
-            </span>
-            <input
-              type="text"
-              value={query}
-              onChange={handleSearch}
-              placeholder={searchPlaceholder}
-              aria-label="Buscar"
-              className="py-1"
-            />
-          </div>
         </div>
 
         {/* ── Actions ── */}
@@ -67,7 +50,7 @@ export default function PageHeader({
           {/* Notifications */}
           <button
             className="topbar-icon-btn notif-badge p-1.5"
-            onClick={onNotificationsClick}
+            onClick={(e) => { e.stopPropagation(); setIsNotifOpen(!isNotifOpen); }}
             aria-label={`Notificaciones${notificationCount ? ` (${notificationCount})` : ''}`}
           >
             <span className="material-symbols-outlined text-[18px]">notifications</span>
@@ -102,6 +85,8 @@ export default function PageHeader({
         </div>
 
       </div>
+
+      <NotificationMenu isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
     </header>
   );
 }
