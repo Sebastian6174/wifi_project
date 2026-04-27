@@ -60,7 +60,7 @@ export default function ManageConversationalAgent({ isLanding = false }) {
         <div className={`flex flex-col max-w-4xl mx-auto w-full ${
           isLanding 
             ? 'gap-5 px-3 sm:px-4 pt-4 overflow-y-auto flex-1 pb-24' 
-            : 'gap-8 px-2 lg:px-8 pt-10 pb-4'
+            : 'gap-8 px-2 lg:px-8 pt-10 pb-16'
         }`}>
           {messages.map(msg => (
             <ChatMessage key={msg.id} message={msg} />
@@ -69,7 +69,7 @@ export default function ManageConversationalAgent({ isLanding = false }) {
         </div>
 
         {/* Input Area (Sticky inside bottom of main page) */}
-        <div className={isLanding ? "absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200" : ""}>
+        <div className={isLanding ? "absolute bottom-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-200" : "sticky bottom-0 z-40 w-full"}>
           <ChatInput 
             onSendMessage={handleSendMessage}
             suggestions={SUGGESTED_PROMPTS}

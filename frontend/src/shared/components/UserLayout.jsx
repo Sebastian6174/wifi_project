@@ -8,16 +8,15 @@ export default function UserLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/login");
   };
 
   return (
     <div className="min-h-screen bg-[var(--md-background)] text-[var(--md-on-surface)] flex flex-col">
       <AccessibilityMenu />
-      
+
       {/* ── Top Navigation Bar ── */}
       <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/60 shadow-sm px-4 sm:px-8 h-16 flex items-center justify-between">
-        
         {/* Brand */}
         <div className="flex items-center gap-3">
           <div className="size-9 rounded-xl bg-[#004851] flex items-center justify-center shadow-md">
@@ -29,8 +28,12 @@ export default function UserLayout() {
             </span>
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-[#004851] font-black text-sm leading-tight tracking-tight">Cali Conecta</h1>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">WiFi Público</p>
+            <h1 className="text-[#004851] font-black text-sm leading-tight tracking-tight">
+              Cali Conecta
+            </h1>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              WiFi Público
+            </p>
           </div>
         </div>
 
@@ -47,7 +50,10 @@ export default function UserLayout() {
               }`
             }
           >
-            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            <span
+              className="material-symbols-outlined text-[18px]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
               map
             </span>
             <span className="hidden sm:inline">Mapa WiFi</span>
@@ -63,7 +69,10 @@ export default function UserLayout() {
               }`
             }
           >
-            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>
+            <span
+              className="material-symbols-outlined text-[18px]"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
               forum
             </span>
             <span className="hidden sm:inline">Chat IA</span>
@@ -73,15 +82,21 @@ export default function UserLayout() {
         {/* User / Logout */}
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-bold text-slate-800">{user?.name || "Usuario"}</span>
-            <span className="text-[10px] font-medium text-slate-500">{user?.email || "Invitado"}</span>
+            <span className="text-xs font-bold text-slate-800">
+              {user?.name || "Usuario"}
+            </span>
+            <span className="text-[10px] font-medium text-slate-500">
+              {user?.email || "Invitado"}
+            </span>
           </div>
           <button
             onClick={handleLogout}
             title="Cerrar Sesión"
             className="size-9 rounded-xl flex items-center justify-center text-slate-500 bg-slate-50 hover:bg-rose-50 hover:text-rose-600 border border-slate-200/60 transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
+            <span className="material-symbols-outlined text-[18px]">
+              logout
+            </span>
           </button>
         </div>
       </header>

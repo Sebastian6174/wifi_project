@@ -13,51 +13,49 @@
  *   - Delegated to <PageHeader /> component
  */
 
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import useAuth from '../hooks/useAuth';
-import PageHeader from './PageHeader';
+import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import useAuth from "../hooks/useAuth";
+import PageHeader from "./PageHeader";
 
 /* ── Navigation items ── */
 const NAV_ITEMS = [
   {
-    to:       '/dashboard/operational',
-    label:    'Operative Agent',
-    icon:     'settings_input_antenna',
+    to: "/dashboard/operational",
+    label: "Operative Agent",
+    icon: "settings_input_antenna",
     iconFill: false,
   },
   {
-    to:       '/dashboard/conversational',
-    label:    'Conversational AI',
-    icon:     'forum',
+    to: "/dashboard/conversational",
+    label: "Conversational AI",
+    icon: "forum",
     iconFill: true,
   },
   {
-    to:       '/dashboard/strategic',
-    label:    'Strategic Dashboard',
-    icon:     'query_stats',
+    to: "/dashboard/strategic",
+    label: "Strategic Dashboard",
+    icon: "query_stats",
     iconFill: false,
   },
 ];
 
 export default function DashboardLayout() {
   const { logout } = useAuth();
-  const navigate   = useNavigate();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/login");
   };
 
   return (
     <div className="min-h-screen bg-[var(--md-background)] text-[var(--md-on-surface)]">
-
       {/* ── Top App Bar ── */}
       <PageHeader />
 
       <div className="flex pt-12 min-h-screen">
-
         {/* ── Mobile overlay ── */}
         {mobileOpen && (
           <div
@@ -69,11 +67,11 @@ export default function DashboardLayout() {
         {/* ── Sidebar ── */}
         <aside
           className={[
-            'sidebar sticky top-12 h-[calc(100vh-48px)]',
+            "sidebar sticky top-12 h-[calc(100vh-48px)]",
             /* mobile: slide in/out */
-            'fixed lg:static z-40 transition-transform duration-300 ease-in-out',
-            mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-          ].join(' ')}
+            "fixed lg:static z-40 transition-transform duration-300 ease-in-out",
+            mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          ].join(" ")}
         >
           {/* Brand header */}
           <div className="px-5 mb-5">
@@ -88,7 +86,9 @@ export default function DashboardLayout() {
               </div>
               <div>
                 <p className="sidebar-brand-title text-sm">Network Control</p>
-                <p className="sidebar-brand-sub text-[10px]">Santiago de Cali</p>
+                <p className="sidebar-brand-sub text-[10px]">
+                  Santiago de Cali
+                </p>
               </div>
             </div>
           </div>
@@ -100,13 +100,17 @@ export default function DashboardLayout() {
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  ['dash-nav-link text-xs py-2', isActive ? 'active' : ''].join(' ')
+                  ["dash-nav-link text-xs py-2", isActive ? "active" : ""].join(
+                    " ",
+                  )
                 }
                 onClick={() => setMobileOpen(false)}
               >
                 <span
                   className="material-symbols-outlined text-[18px]"
-                  style={iconFill ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                  style={
+                    iconFill ? { fontVariationSettings: "'FILL' 1" } : undefined
+                  }
                 >
                   {icon}
                 </span>
@@ -125,18 +129,24 @@ export default function DashboardLayout() {
             {/* Footer links */}
             <div className="border-t border-slate-100 pt-3 flex flex-col gap-1">
               <a href="#" className="sidebar-footer-link text-xs py-1.5">
-                <span className="material-symbols-outlined text-[16px]">analytics</span>
+                <span className="material-symbols-outlined text-[16px]">
+                  analytics
+                </span>
                 System Health
               </a>
               <a href="#" className="sidebar-footer-link text-xs py-1.5">
-                <span className="material-symbols-outlined text-[16px]">contact_support</span>
+                <span className="material-symbols-outlined text-[16px]">
+                  contact_support
+                </span>
                 Support
               </a>
               <button
                 onClick={handleLogout}
                 className="sidebar-footer-link w-full text-left hover:!text-red-500 text-xs py-1.5"
               >
-                <span className="material-symbols-outlined text-[16px]">logout</span>
+                <span className="material-symbols-outlined text-[16px]">
+                  logout
+                </span>
                 Sign Out
               </button>
             </div>
@@ -153,7 +163,7 @@ export default function DashboardLayout() {
               aria-label="Abrir menú"
             >
               <span className="material-symbols-outlined text-[18px]">
-                {mobileOpen ? 'close' : 'menu'}
+                {mobileOpen ? "close" : "menu"}
               </span>
             </button>
           </div>
@@ -162,7 +172,6 @@ export default function DashboardLayout() {
             <Outlet />
           </div>
         </main>
-
       </div>
     </div>
   );
