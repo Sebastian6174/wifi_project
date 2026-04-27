@@ -23,7 +23,7 @@ export default function ChatMessage({ message }) {
           {isAI ? 'Cali Connect AI' : 'Tú'}
         </h3>
         
-        <div className={`p-4 text-sm leading-relaxed shadow-sm max-w-[90%] md:max-w-[85%] ${
+        <div className={`p-4 text-sm leading-relaxed shadow-sm w-full sm:max-w-[95%] ${
           isAI 
             ? 'glass-panel border-white rounded-2xl rounded-tl-none font-medium text-slate-700 bg-white/70' 
             : 'bg-[var(--md-primary-container)] text-white rounded-2xl rounded-tr-none'

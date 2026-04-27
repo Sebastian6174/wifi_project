@@ -1,8 +1,16 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import useAuth from "../../../shared/hooks/useAuth";
 
 export default function TechnicianLayout({ children }) {
   const location = useLocation();
   const isHistory = location.pathname.includes("history");
+  const navigate  = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="bg-[#f8f9ff] font-public-sans text-[#0b1c30] min-h-screen selection:bg-[var(--md-primary-container)] selection:text-white">
@@ -57,12 +65,23 @@ export default function TechnicianLayout({ children }) {
             </div>
           </nav>
           
-          <div className="mt-auto pt-4 border-t border-slate-100 flex items-center gap-2 px-2">
-             <span className="material-symbols-outlined text-[18px] text-amber-500" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
-            <div>
-              <p className="text-[10px] font-bold">Network Control</p>
-              <p className="text-[9px] text-slate-400">Cali Seal</p>
-            </div>
+          {/* Sidebar footer — matches admin layout */}
+          <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-1 px-2">
+            <a href="#" className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-[#004851] hover:bg-slate-50 font-medium transition-colors">
+              <span className="material-symbols-outlined text-[16px]">analytics</span>
+              System Health
+            </a>
+            <a href="#" className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-[#004851] hover:bg-slate-50 font-medium transition-colors">
+              <span className="material-symbols-outlined text-[16px]">contact_support</span>
+              Soporte
+            </a>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-rose-500 hover:bg-rose-50 font-medium transition-colors w-full text-left"
+            >
+              <span className="material-symbols-outlined text-[16px]">logout</span>
+              Cerrar Sesión
+            </button>
           </div>
         </aside>
 

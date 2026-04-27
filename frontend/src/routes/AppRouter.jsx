@@ -12,22 +12,27 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
+import LandingPage           from '../pages/LandingPage';
 import LoginPage               from '../pages/LoginPage';
 import OperationalAgentPage    from '../pages/OperationalAgentPage';
 import ConversationalAgentPage from '../pages/ConversationalAgentPage';
 import StrategicAgentPage      from '../pages/StrategicAgentPage';
+import ApplyStrategyPage      from '../pages/ApplyStrategyPage';
 import TechniciansPage         from '../pages/TechniciansPage';
 import ActiveTicketPage        from '../pages/ActiveTicketPage';
 import TicketHistoryPage      from '../pages/TicketHistoryPage';
 import DashboardLayout         from '../shared/components/DashboardLayout';
+import UserLayout              from '../shared/components/UserLayout';
 import ProtectedRoute          from '../shared/components/ProtectedRoute';
+import UserMapPage             from '../pages/UserMapPage';
 
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
 
         {/* Protected — requires authentication */}
         <Route
@@ -44,7 +49,21 @@ export default function AppRouter() {
           <Route path="operational"    element={<OperationalAgentPage />} />
           <Route path="conversational" element={<ConversationalAgentPage />} />
           <Route path="strategic"      element={<StrategicAgentPage />} />
+          <Route path="strategic-apply" element={<ApplyStrategyPage />} />
           <Route path="technicians"    element={<TechniciansPage />} />
+        </Route>
+
+        {/* General-user route (public WiFi chat + map) */}
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute>
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<UserMapPage />} />
+          <Route path="chat" element={<ConversationalAgentPage />} />
         </Route>
 
         {/* Technician routes */}
