@@ -146,6 +146,10 @@
     @apply bg-background text-foreground;
   }
 
+  html.high-contrast {
+    filter: contrast(135%) saturate(120%);
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-weight: var(--font-weight-bold);
     line-height: 1.25;
@@ -642,6 +646,7 @@
     font-weight: 500;
     color: #64748b;
     text-decoration: none;
+    white-space: nowrap;
     transition: background 300ms, padding-left 300ms, color 150ms;
     border-left: 4px solid transparent;
   }

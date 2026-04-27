@@ -21,7 +21,9 @@ import TechniciansPage         from '../pages/TechniciansPage';
 import ActiveTicketPage        from '../pages/ActiveTicketPage';
 import TicketHistoryPage      from '../pages/TicketHistoryPage';
 import DashboardLayout         from '../shared/components/DashboardLayout';
+import UserLayout              from '../shared/components/UserLayout';
 import ProtectedRoute          from '../shared/components/ProtectedRoute';
+import UserMapPage             from '../pages/UserMapPage';
 
 export default function AppRouter() {
   return (
@@ -47,6 +49,19 @@ export default function AppRouter() {
           <Route path="strategic"      element={<StrategicAgentPage />} />
           <Route path="strategic-apply" element={<ApplyStrategyPage />} />
           <Route path="technicians"    element={<TechniciansPage />} />
+        </Route>
+
+        {/* General-user route (public WiFi chat + map) */}
+        <Route
+          path="/user"
+          element={
+            <ProtectedRoute>
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<UserMapPage />} />
+          <Route path="chat" element={<ConversationalAgentPage />} />
         </Route>
 
         {/* Technician routes */}
