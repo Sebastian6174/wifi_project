@@ -1,0 +1,8 @@
+/* components/  — Operational Agent UI components
+ * ─────────────────────────────────────────────
+ * Planned components:
+ *   AnomalyList.jsx        — live list of detected faults with severity badges
+ *   WorkOrderCard.jsx      — individual work-order with status and priority
+ *   TechnicianAssignment.jsx — shows assigned technician per order
+ *   AccessPointStatus.jsx  — AP health indicator map widget
+ */

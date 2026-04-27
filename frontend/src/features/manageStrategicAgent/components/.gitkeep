@@ -1,0 +1,8 @@
+/* components/  — Strategic Agent UI components
+ * ──────────────────────────────────────────────
+ * Planned components:
+ *   KPICard.jsx                — metric card with trend indicator
+ *   GeoMap.jsx                 — Leaflet/MapboxGL map with AP health overlay
+ *   RecommendationCard.jsx     — investment/maintenance recommendation item
+ *   PerformanceChart.jsx       — recharts line/bar chart for AP stats over time
+ */

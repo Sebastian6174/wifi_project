@@ -1,0 +1,8 @@
+/* components/  — Conversational Agent UI components
+ * ─────────────────────────────────────────────────
+ * Planned components:
+ *   ChatInterface.jsx  — scrollable message thread
+ *   MessageBubble.jsx  — user / assistant bubble pair
+ *   SqlPreview.jsx     — collapsible SQL snippet viewer
+ *   QueryInput.jsx     — textarea + send button
+ */
