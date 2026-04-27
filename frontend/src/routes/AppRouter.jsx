@@ -16,6 +16,7 @@ import LoginPage               from '../pages/LoginPage';
 import OperationalAgentPage    from '../pages/OperationalAgentPage';
 import ConversationalAgentPage from '../pages/ConversationalAgentPage';
 import StrategicAgentPage      from '../pages/StrategicAgentPage';
+import ApplyStrategyPage      from '../pages/ApplyStrategyPage';
 import TechniciansPage         from '../pages/TechniciansPage';
 import ActiveTicketPage        from '../pages/ActiveTicketPage';
 import TicketHistoryPage      from '../pages/TicketHistoryPage';
@@ -44,6 +45,7 @@ export default function AppRouter() {
           <Route path="operational"    element={<OperationalAgentPage />} />
           <Route path="conversational" element={<ConversationalAgentPage />} />
           <Route path="strategic"      element={<StrategicAgentPage />} />
+          <Route path="strategic-apply" element={<ApplyStrategyPage />} />
           <Route path="technicians"    element={<TechniciansPage />} />
         </Route>
 

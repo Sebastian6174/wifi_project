@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom";
 import { AI_RECOMMENDATIONS } from "../utils/mockStrategicData";
 
 export default function StrategicRecommendations() {
+  const navigate = useNavigate();
   return (
     <div className="col-span-12 lg:col-span-4 flex flex-col gap-4 h-full">
       <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex-1 flex flex-col shadow-sm border border-slate-200/60 bg-white/60">
@@ -36,7 +38,11 @@ export default function StrategicRecommendations() {
           ))}
         </div>
 
-        <button className="mt-3 w-full py-2.5 text-xs bg-[var(--md-primary-container)] text-white rounded-xl font-bold hover:bg-[#003036] hover:shadow-lg hover:shadow-teal-900/20 active:scale-[0.98] transition-all relative z-10">
+        <button
+          onClick={() => navigate("/dashboard/strategic-apply")}
+          className="mt-3 w-full py-2.5 text-xs bg-[var(--md-primary-container)] text-white rounded-xl font-bold hover:bg-[#003036] hover:shadow-lg hover:shadow-teal-900/20 active:scale-[0.98] transition-all relative z-10 flex items-center justify-center gap-1.5"
+        >
+          <span className="material-symbols-outlined text-[15px]">rocket_launch</span>
           Apply Strategic Plan
         </button>
       </div>
