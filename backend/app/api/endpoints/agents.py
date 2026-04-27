@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.core.gemini_config import generate_gemini_response
 from app.schemas.agent_schema import AgentInput, AgentPromptRequest, AgentPromptResponse
-from app.services.langgraph_workflow import run_multiagent_prompt
+from app.services.workflow.langgraph_workflow import run_multiagent_prompt
 
 router = APIRouter()
 logger = logging.getLogger("app.agents")
@@ -37,18 +37,23 @@ async def _run_agent(request: AgentPromptRequest) -> AgentPromptResponse:
     try:
         if request.agent_type == "conversacional":
             logger.info("Ejecutando flujo LangGraph multi-agente para consulta conversacional")
-            answer = await run_multiagent_prompt(request.prompt, request.context)
+            answer = await run_multiagent_prompt(
+                request.prompt,
+                request.context,
+                request.conversation_id,
+            )
         else:
             full_prompt = (
                 f"{system_prompt}\n\n"
                 f"Contexto:\n{request.context or 'Sin contexto adicional'}\n\n"
                 f"Consulta del usuario:\n{request.prompt}"
             )
-            logger.info("Ejecutando decision de agente=%s con Gemini", request.agent_type)
+            logger.info("Ejecutando decision directa para agente=%s", request.agent_type)
             answer = await generate_gemini_response(full_prompt)
+    
         logger.info("Respuesta generada para agente=%s", request.agent_type)
         return AgentPromptResponse(agent_type=request.agent_type, answer=answer)
-    except Exception as exc:
+    except Exception as exc: 
         logger.exception("Error procesando agente=%s", request.agent_type)
         raise HTTPException(status_code=500, detail=f"Error interno de IA: {exc}") from exc
 

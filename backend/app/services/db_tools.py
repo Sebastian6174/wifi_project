@@ -6,6 +6,46 @@ from sqlalchemy import text
 from app.core.database import engine
 
 _IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_TABLE_REF_RE = re.compile(
+    r'\b(?:from|join)\s+(?:(?:"?(?:public)"?\.)?)"?(?P<table>[A-Za-z_][A-Za-z0-9_]*)"?\b',
+    flags=re.IGNORECASE,
+)
+_TABLE_ALIAS_RE = re.compile(
+    r'\b(?:from|join)\s+(?:(?:"?(?:public)"?\.)?)"?(?P<table>[A-Za-z_][A-Za-z0-9_]*)"?'
+    r'(?:\s+(?:as\s+)?"?(?P<alias>[A-Za-z_][A-Za-z0-9_]*)"?)?',
+    flags=re.IGNORECASE,
+)
+_ALIASED_COLUMN_RE = re.compile(
+    r'\b(?P<alias>[A-Za-z_][A-Za-z0-9_]*)\.(?P<column>[A-Za-z_][A-Za-z0-9_]*)\b'
+)
+_ALLOWED_TABLES = {"zonas_wifi", "conexiones_wifi"}
+_ALLOWED_COLUMNS_BY_TABLE = {
+    "zonas_wifi": {
+        "id",
+        "nombre_zona",
+        "direccion",
+        "barrio",
+        "comuna",
+        "codigo",
+        "correo_electronico",
+        "latitud",
+        "longitud",
+        "proveedor_conectividad",
+        "velocidad",
+        "horarios",
+    },
+    "conexiones_wifi": {
+        "id",
+        "fecha_conexion",
+        "area",
+        "nombre_zona",
+        "comuna",
+        "model",
+        "numero_conexiones",
+        "usage_kb",
+        "porcentaje_uso",
+    },
+}
 
 
 def _is_safe_identifier(value: str) -> bool:
@@ -55,6 +95,49 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
         raise ValueError("Solo se permiten consultas SELECT.")
     if ";" in normalized:
         raise ValueError("No se permiten multiples sentencias SQL.")
+
+    referenced_tables = {
+        match.group("table").lower()
+        for match in _TABLE_REF_RE.finditer(sql)
+        if match.group("table")
+    }
+    disallowed = referenced_tables - _ALLOWED_TABLES
+    if disallowed:
+        raise ValueError(
+            "La consulta referencia tablas no permitidas: "
+            f"{', '.join(sorted(disallowed))}. "
+            "Tablas permitidas: conexiones_wifi, zonas_wifi."
+        )
+
+    alias_to_table: dict[str, str] = {}
+    for match in _TABLE_ALIAS_RE.finditer(sql):
+        table = (match.group("table") or "").lower()
+        alias = (match.group("alias") or "").lower()
+        if table not in _ALLOWED_TABLES:
+            continue
+        alias_to_table[table] = table
+        if alias and alias not in {"on", "where", "group", "order", "limit"}:
+            alias_to_table[alias] = table
+
+    invalid_columns: list[str] = []
+    for match in _ALIASED_COLUMN_RE.finditer(sql):
+        alias = match.group("alias").lower()
+        column = match.group("column").lower()
+        table = alias_to_table.get(alias)
+        if not table:
+            continue
+        allowed_columns = _ALLOWED_COLUMNS_BY_TABLE.get(table, set())
+        if column not in allowed_columns:
+            invalid_columns.append(f"{alias}.{column}")
+
+    if invalid_columns:
+        raise ValueError(
+            "La consulta usa columnas no permitidas o inexistentes: "
+            f"{', '.join(sorted(set(invalid_columns)))}. "
+            "Revisa el esquema: "
+            "zonas_wifi(nombre_zona,direccion,barrio,comuna,codigo,correo_electronico,latitud,longitud,proveedor_conectividad,velocidad,horarios) "
+            "y conexiones_wifi(fecha_conexion,area,nombre_zona,comuna,model,numero_conexiones,usage_kb,porcentaje_uso)."
+        )
 
     wrapped_sql = text(f"SELECT * FROM ({sql}) AS q LIMIT :limit")
     with engine.connect() as conn:
