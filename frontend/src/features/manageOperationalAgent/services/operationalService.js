@@ -5,9 +5,15 @@
 
 import api from '../../../shared/services/apiClient';
 
-export const getAlerts        = ()       => api.get('/agents/operational/alerts');
-export const getWorkOrders    = ()       => api.get('/agents/operational/work-orders');
-export const assignTechnician = (orderId, techId) =>
-  api.patch(`/agents/operational/work-orders/${orderId}/assign`, { technicianId: techId });
-export const resolveOrder     = (orderId) =>
-  api.patch(`/agents/operational/work-orders/${orderId}/resolve`);
+/**
+ * Sends a prompt to the Operative Agent to trigger the anomaly prediction workflow.
+ * @param {string} prompt 
+ * @param {string} [context] 
+ */
+export const askOperativeAgent = (prompt, context = null) => 
+  api.post('/agents/operativo', { prompt, context });
+
+// Note: These endpoints are placeholders for future structured data integration
+export const getAlerts        = ()       => Promise.resolve([]); // api.get('/data/active-tickets');
+export const getWorkOrders    = ()       => Promise.resolve([]); // api.get('/data/work-orders');
+

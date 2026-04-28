@@ -5,6 +5,9 @@ from langgraph.prebuilt import ToolNode
 
 from app.services.db_tools import run_readonly_query
 
+from app.services.ml_core.wifi_usage_nn import run_anomaly_detection_for_zone
+
+
 DB_SCHEMA_PROMPT = """
 Esquema SQL real disponible (NO inventar columnas):
 
@@ -49,32 +52,12 @@ def query_wifi_database(sql: str) -> str:
 @tool
 def predict_anomaly(zone_name: str) -> str:
     """
-    Heuristica inicial de anomalias (placeholder mejorable).
+    Detecta anomalías comparando usage_kb real vs predicho por un MLP entrenado con
+    comuna y numero_conexiones (80/20 train/test). Si no hay datos o el modelo no
+    puede entrenarse, usa heurística por agregados de zona.
     """
-    safe_zone = zone_name.strip().replace("'", "''")
-    query = f"""
-    SELECT
-      nombre_zona,
-      AVG(numero_conexiones) AS avg_conexiones,
-      MAX(numero_conexiones) AS max_conexiones,
-      MIN(numero_conexiones) AS min_conexiones
-    FROM conexiones_wifi
-    WHERE nombre_zona ILIKE '%{safe_zone}%'
-    GROUP BY nombre_zona
-    ORDER BY avg_conexiones DESC
-    LIMIT 5
-    """
-    rows = run_readonly_query(query, limit=10)
-    return json.dumps(
-        {
-            "zone_name": zone_name,
-            "status": "ok" if rows else "sin_datos",
-            "prediction_hint": "Anomalia sugerida cuando max_conexiones > 2x avg_conexiones.",
-            "data": rows,
-        },
-        ensure_ascii=False,
-        default=str,
-    )
+    report = run_anomaly_detection_for_zone(zone_name)
+    return json.dumps(report, ensure_ascii=False, default=str)
 
 
 @tool
