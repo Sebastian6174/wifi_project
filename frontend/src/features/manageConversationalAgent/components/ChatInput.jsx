@@ -12,6 +12,7 @@ export default function ChatInput({
   const [modeOpen, setModeOpen] = useState(false);
   const [selectedContext, setSelectedContext] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(true);
 
   const textareaRef = useRef(null);
   const containerRef = useRef(null);
@@ -94,17 +95,33 @@ export default function ChatInput({
     <div className="w-full bg-gradient-to-t from-background via-background to-transparent pb-6 pt-8 px-4 sticky bottom-0 z-20">
       <div className="max-w-3xl mx-auto flex flex-col gap-3" ref={containerRef}>
         {Array.isArray(suggestions) && suggestions.length > 0 && (
-          <div className="flex flex-wrap gap-2 px-1">
-            {suggestions.map((suggestion, idx) => (
+          <div className="flex flex-col gap-2 px-1">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                Sugerencias
+              </p>
               <button
-                key={`${suggestion}-${idx}`}
                 type="button"
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="text-[11px] font-bold text-slate-600 bg-white/80 border border-slate-200 px-3 py-1.5 rounded-full hover:bg-white hover:text-[var(--md-primary-container)] hover:border-[var(--md-primary-container)]/30 transition-colors"
+                onClick={() => setShowSuggestions((prev) => !prev)}
+                className="text-[10px] font-bold text-slate-400 hover:text-[var(--md-primary-container)] transition-colors"
               >
-                {suggestion}
+                {showSuggestions ? "Ocultar" : "Mostrar"}
               </button>
-            ))}
+            </div>
+            {showSuggestions && (
+              <div className="flex flex-wrap gap-2">
+                {suggestions.map((suggestion, idx) => (
+                  <button
+                    key={`${suggestion}-${idx}`}
+                    type="button"
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    className="text-[11px] font-bold text-slate-600 bg-white/80 border border-slate-200 px-3 py-1.5 rounded-full hover:bg-white hover:text-[var(--md-primary-container)] hover:border-[var(--md-primary-container)]/30 transition-colors"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

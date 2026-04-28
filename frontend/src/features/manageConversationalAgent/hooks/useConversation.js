@@ -3,16 +3,40 @@
  * Manages chat message state and API interaction.
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { sendQuery } from '../services/conversationalService';
 
 /** @typedef {{ id: string; role: 'user'|'assistant'; content: string; sql?: string; timestamp: Date }} Message */
 
+const STORAGE_KEY = 'wifi_conversational_chat_v1';
+
+const loadState = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
 export default function useConversation() {
-  const [messages, setMessages] = useState(/** @type {Message[]} */ ([]));
+  const persisted = loadState();
+  const [messages, setMessages] = useState(
+    /** @type {Message[]} */ (persisted?.messages ?? []),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [threadId, setThreadId] = useState(() => crypto.randomUUID());
+  const [threadId, setThreadId] = useState(
+    () => persisted?.threadId ?? crypto.randomUUID(),
+  );
+
+  useEffect(() => {
+    const payload = JSON.stringify({ messages, threadId });
+    localStorage.setItem(STORAGE_KEY, payload);
+  }, [messages, threadId]);
 
   const sendMessage = async (question, options = {}) => {
     const { modeId = "auto" } = options;

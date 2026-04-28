@@ -13,7 +13,8 @@ const INITIAL_MESSAGE = {
 };
 
 export default function ManageConversationalAgent({ isLanding = false }) {
-  const { messages, isLoading, error, sendMessage } = useConversation();
+  const { messages, isLoading, error, sendMessage, clearChat } =
+    useConversation();
   const allMessages = messages.length ? messages : [INITIAL_MESSAGE];
   const displayMessages = isLoading
     ? [
@@ -53,15 +54,26 @@ export default function ManageConversationalAgent({ isLanding = false }) {
         {/* Floating History Action (Right aligned, sticks to top while scrolling) */}
         {!isLanding && (
           <div className="sticky top-4 right-4 sm:right-8 z-30 flex justify-end px-4 sm:px-8 pointer-events-none mb-[-40px]">
-            <button
-              onClick={() => setIsHistoryOpen(true)}
-              className="pointer-events-auto flex items-center shadow-md gap-1.5 px-3 py-2 rounded-xl bg-white/80 hover:bg-white backdrop-blur-sm border border-slate-200 text-slate-600 transition-colors text-xs font-bold"
-            >
-              <span className="material-symbols-outlined text-[16px] text-[var(--md-primary-container)]">
-                history
-              </span>
-              Historial
-            </button>
+            <div className="pointer-events-auto flex items-center gap-2">
+              <button
+                onClick={() => setIsHistoryOpen(true)}
+                className="flex items-center shadow-md gap-1.5 px-3 py-2 rounded-xl bg-white/80 hover:bg-white backdrop-blur-sm border border-slate-200 text-slate-600 transition-colors text-xs font-bold"
+              >
+                <span className="material-symbols-outlined text-[16px] text-[var(--md-primary-container)]">
+                  history
+                </span>
+                Historial
+              </button>
+              <button
+                onClick={clearChat}
+                className="flex items-center shadow-md gap-1.5 px-3 py-2 rounded-xl bg-white/80 hover:bg-white backdrop-blur-sm border border-slate-200 text-slate-600 transition-colors text-xs font-bold"
+              >
+                <span className="material-symbols-outlined text-[16px] text-slate-400">
+                  delete
+                </span>
+                Borrar chat
+              </button>
+            </div>
           </div>
         )}
 
