@@ -1,11 +1,15 @@
 import json
+import os
 from uuid import uuid4
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
+from langchain_openai import ChatOpenAI
 from openai import BadRequestError
+
+from app.core.llm_config import get_model_config
 
 from app.services.conversational.db_tools import run_sql_readonly
 from app.services.conversational.prompts import APPLICATION_CONTEXT
@@ -13,11 +17,33 @@ from app.services.conversational.schemas import ChatRequest, ChatResponse
 
 load_dotenv()
 
-MODEL = "gpt-5-nano"
+MODEL_CONFIG = get_model_config()
+
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:  # pragma: no cover
+    ChatGoogleGenerativeAI = None
+
+
+def _build_chat_model():
+    if MODEL_CONFIG.provider == "openai":
+        return ChatOpenAI(model=MODEL_CONFIG.model)
+
+    if ChatGoogleGenerativeAI is None:
+        raise RuntimeError(
+            "langchain-google-genai no esta instalado. "
+            "Agrega la dependencia para usar Gemini en el agente conversacional."
+        )
+
+    google_api_key = os.getenv("GOOGLE_API_KEY", "").strip()
+    if not google_api_key:
+        raise RuntimeError("No hay GOOGLE_API_KEY configurada para ejecutar Gemini.")
+
+    return ChatGoogleGenerativeAI(model=MODEL_CONFIG.model, google_api_key=google_api_key)
 
 checkpointer = InMemorySaver()
 agent = create_agent(
-    model=MODEL,
+    model=_build_chat_model(),
     tools=[run_sql_readonly],
     system_prompt=APPLICATION_CONTEXT,
     checkpointer=checkpointer,
@@ -144,7 +170,7 @@ def run_conversational_chat(payload: ChatRequest) -> ChatResponse:
 
     return ChatResponse(
         answer=answer,
-        model=MODEL,
+        model=MODEL_CONFIG.model,
         thread_id=effective_thread_id,
         sql=sql,
         row_count=row_count,

@@ -2,7 +2,7 @@ import logging
 
 from fastapi import APIRouter, HTTPException
 
-from app.core.gemini_config import generate_gemini_response
+from app.core.llm_client import generate_llm_response
 from app.schemas.agent_schema import AgentInput, AgentPromptRequest, AgentPromptResponse
 from app.services.conversational.schemas import ChatRequest, ChatResponse
 from app.services.conversational.service import run_conversational_chat
@@ -59,7 +59,7 @@ async def _run_agent(request: AgentPromptRequest) -> AgentPromptResponse:
                 f"Consulta del usuario:\n{request.prompt}"
             )
             logger.info("Ejecutando decision directa para agente=%s", request.agent_type)
-            answer = await generate_gemini_response(full_prompt)
+            answer = await generate_llm_response(full_prompt)
     
         logger.info("Respuesta generada para agente=%s", request.agent_type)
         return AgentPromptResponse(agent_type=request.agent_type, answer=answer)
