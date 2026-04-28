@@ -10,10 +10,10 @@ import api from '../../../shared/services/apiClient';
  * @param {string} prompt 
  * @param {string} [context] 
  */
-export const askOperativeAgent = (prompt, context = null) => 
+export const askOperativeAgent = (prompt, context = null) =>
   api.post('/agents/operativo', { prompt, context });
 
 // Note: These endpoints are placeholders for future structured data integration
 export const getAlerts        = ()       => Promise.resolve([]); // api.get('/data/active-tickets');
 export const getWorkOrders    = ()       => Promise.resolve([]); // api.get('/data/work-orders');
-
+export const getWifiPoints    = ()       => api.get('/data/wifi-points');

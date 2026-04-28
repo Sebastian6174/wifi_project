@@ -11,56 +11,43 @@ from app.services.ml_core.wifi_usage_nn import run_anomaly_detection_for_zone
 DB_SCHEMA_PROMPT = """
 Esquema SQL real disponible (IMPORTANTE: USAR COMILLAS DOBLES PARA COLUMNAS CON ESPACIOS):
 
-Tabla wifi_points:
-- id
-- "NOMBRE ZONA"
-- "DIRECCION"
-- "BARRIO"
-- "COMUNA"
-- "CODIGO"
-- "CORREO ELECTRÓNICO"
-- "LATITUD"
-- "LONGITUD"
-- "PROVEEDOR CONECTIVIDAD"
-- "VELOCIDAD"
-- "HORARIOS"
+Tabla access_point_curated (Inventario de APs):
+- ap_name, mac, serial, status, local_ip, connectivity_history.
 
-Tabla wifi_usage:
-- id
-- "FECHA CONEXION"
-- "AREA"
-- "NOMBRE ZONA"
-- "COMUNA"
-- "MODEL"
-- "NUMERO CONEXIONES"
-- "USAGE (kB)"
-- "PORCENTAJE USO"
+Tabla network_events_curated (Logs de Conectividad):
+- timestamp, ap_name, ssid, client_id, client_description, event_category, event_type, event_detail.
 
-Tabla tecnicos:
-- id
-- nombre
-- especialidad
+Tabla clients (Inventario de Clientes):
+- client_id, status, client_description, last_seen, usage_mb, device_type, ap_name, policy, onboarding.
+    
+Tabla ap_hourly_metrics_curated (Métricas Agregadas por Hora):
+- timestamp_hour, ap_name, total_events, total_connections, total_disconnections, total_auth, unique_clients, disconnection_rate, status.
 
-Tabla tickets:
-- id
-- tipo_anomalia
-- descripcion
-- estado
-- id_tecnico
-- created_at
-- resuelto_en
-- wifi_point_id
+Tabla wifi_points (Ubicación Geográfica y Metadatos):
+- id, "NOMBRE ZONA", "DIRECCION", "BARRIO", "COMUNA", "CODIGO", "CORREO ELECTRÓNICO", "LATITUD", "LONGITUD", "PROVEEDOR CONECTIVIDAD", "VELOCIDAD", "HORARIOS".
+
+Tabla wifi_usage (Uso Histórico por Zona):
+- "FECHA CONEXION", "AREA", "NOMBRE ZONA", "COMUNA", "MODEL", "NUMERO CONEXIONES", "USAGE (kB)", "PORCENTAJE USO", id.
+
+Tabla strategic_plans, plan_steps, plan_budget_items (Planificación Estratégica):
+- strategic_plans: id, title, description, zone, focus, priority, total_hours, subtotal, contingency, grand_total.
+- plan_steps: id, plan_id, position, title, owner, start_date, end_date, hours, status, notes.
+- plan_budget_items: id, plan_id, category, description, qty, unit_cost.
+
+Tabla tecnicos y tickets (Gestión Operativa):
+- tecnicos: id, nombre, especialidad.
+- tickets: id, tipo_anomalia, descripcion, estado, id_tecnico, created_at, resuelto_en, wifi_point_id.
 
 Reglas duras:
-- USAR SIEMPRE COMILLAS DOBLES para nombres de columnas con espacios o caracteres especiales (ej: "NOMBRE ZONA").
-- NO usar columnas inexistentes (prohibido: id_zona, kb_consumidos, ciudad, nombre_zona).
-- Para relacionar tablas usa JOIN por "NOMBRE ZONA" o "COMUNA".
+- USAR SIEMPRE COMILLAS DOBLES para nombres de columnas con espacios (ej: "NOMBRE ZONA").
+- Tablas CURATED: access_point_curated, network_events_curated, ap_hourly_metrics_curated.
+- Para cruce de ubicación y métricas, usar JOIN entre wifi_points ("NOMBRE ZONA") y las tablas curated (ap_name).
 """
 
 
 @tool
 def query_wifi_database(sql: str) -> str:
-    """Ejecuta SQL read-only contra wifi_points/wifi_usage/tecnicos/tickets."""
+    """Ejecuta SQL read-only contra las tablas: access_point_curated, network_events_curated, clients, ap_hourly_metrics_curated, wifi_points, wifi_usage, strategic_plans, tecnicos, tickets."""
     rows = run_readonly_query(sql, limit=300)
     return json.dumps(rows, ensure_ascii=False, default=str)
 

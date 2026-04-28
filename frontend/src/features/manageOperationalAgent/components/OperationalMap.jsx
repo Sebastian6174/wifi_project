@@ -95,6 +95,9 @@ export default function OperationalMap({ accessPoints = [], onlineCount, anomaly
     : accessPoints.filter(ap => ap.status === filter)
   ).filter(ap => ap.lat !== null && ap.lng !== null && !isNaN(ap.lat) && !isNaN(ap.lng));
 
+  console.log(`[OperationalMap] Total: ${accessPoints.length}, Visible: ${visible.length}, Filter: ${filter}`);
+  if (visible.length > 0) console.log("[OperationalMap] First visible point:", visible[0]);
+
   return (
     <div className="op-map-card glass-panel rounded-2xl overflow-hidden relative shadow-xl border border-white/60">
       {/* Status badges */}
