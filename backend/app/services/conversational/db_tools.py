@@ -54,6 +54,14 @@ def run_sql_readonly(sql: str) -> str:
             except json.JSONDecodeError:
                 inner = None
 
+        if isinstance(inner, list):
+            inner = {
+                "tool": "run_sql_readonly",
+                "sql": statement,
+                "count": len(inner),
+                "data": inner,
+            }
+
         if isinstance(inner, dict):
             inner.setdefault("tool", "run_sql_readonly")
             inner.setdefault("sql", statement)
@@ -68,3 +76,51 @@ def run_sql_readonly(sql: str) -> str:
         "data": rows,
     }
     return json.dumps(result, ensure_ascii=True)
+
+
+@tool
+def lookup_data_dictionary(field_name: str) -> str:
+    """Lookup field metadata in data_dictionary by field name."""
+    field = (field_name or "").strip()
+    if not field:
+        return json.dumps(
+            {
+                "tool": "lookup_data_dictionary",
+                "error": "field_name cannot be empty.",
+            },
+            ensure_ascii=True,
+        )
+
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    """
+                    SELECT file_name, field_name, data_type, description
+                    FROM data_dictionary
+                    WHERE field_name ILIKE :field
+                    ORDER BY file_name, field_name
+                    LIMIT 50
+                    """
+                ),
+                {"field": f"%{field}%"},
+            ).fetchall()
+    except Exception as exc:
+        return json.dumps(
+            {
+                "tool": "lookup_data_dictionary",
+                "error": f"Dictionary lookup failed: {str(exc)}",
+            },
+            ensure_ascii=True,
+        )
+
+    rows = [dict(row._mapping) for row in rows]
+    return json.dumps(
+        {
+            "tool": "lookup_data_dictionary",
+            "field_name": field,
+            "count": len(rows),
+            "data": rows,
+        },
+        ensure_ascii=True,
+    )

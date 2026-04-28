@@ -1,33 +1,74 @@
-import ChatChart from './ChatChart';
+import ChatChart from "./ChatChart";
 
 export default function ChatMessage({ message }) {
-  const isAI = message.role === 'ai';
+  const isAI = message.role === "assistant";
+  const table = (() => {
+    const raw = message.tableData;
+    if (!raw) return null;
+
+    if (raw.headers && raw.rows) {
+      return raw;
+    }
+
+    const data = Array.isArray(raw) ? raw : raw.data;
+    if (!Array.isArray(data) || data.length === 0) {
+      return { headers: [], rows: [] };
+    }
+
+    if (Array.isArray(data[0])) {
+      const headers = data[0].map((_, idx) => `col_${idx + 1}`);
+      return { headers, rows: data };
+    }
+
+    if (typeof data[0] === "object" && data[0] !== null) {
+      const headers = Object.keys(data[0]);
+      const rows = data.map((row) =>
+        headers.map((key) => {
+          const value = row?.[key];
+          if (value === null || value === undefined) return "";
+          if (typeof value === "object") return JSON.stringify(value);
+          return String(value);
+        }),
+      );
+      return { headers, rows };
+    }
+
+    return { headers: ["value"], rows: data.map((v) => [String(v)]) };
+  })();
 
   return (
-    <div className={`flex gap-4 w-full ${isAI ? '' : 'flex-row-reverse'}`}>
-      
+    <div className={`flex gap-4 w-full ${isAI ? "" : "flex-row-reverse"}`}>
       {/* Avatar */}
-      <div className={`size-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border ${
-        isAI 
-          ? 'bg-[var(--md-primary-container)] text-white border-transparent' 
-          : 'bg-white text-[var(--md-primary-container)] border-slate-200'
-      }`}>
-        <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: isAI ? "'FILL' 1" : "'FILL' 0" }}>
-          {isAI ? 'auto_awesome' : 'person'}
+      <div
+        className={`size-9 rounded-full flex items-center justify-center flex-shrink-0 shadow-sm border ${
+          isAI
+            ? "bg-[var(--md-primary-container)] text-white border-transparent"
+            : "bg-white text-[var(--md-primary-container)] border-slate-200"
+        }`}
+      >
+        <span
+          className="material-symbols-outlined text-[16px]"
+          style={{ fontVariationSettings: isAI ? "'FILL' 1" : "'FILL' 0" }}
+        >
+          {isAI ? "auto_awesome" : "person"}
         </span>
       </div>
 
       {/* Content */}
-      <div className={`flex-1 flex flex-col ${isAI ? 'items-start' : 'items-end'}`}>
+      <div
+        className={`flex-1 flex flex-col ${isAI ? "items-start" : "items-end"}`}
+      >
         <h3 className="text-[11px] font-bold text-[var(--md-primary-container)] mb-1 uppercase tracking-wide">
-          {isAI ? 'Cali Connect AI' : 'Tú'}
+          {isAI ? "Cali Connect AI" : "Tú"}
         </h3>
-        
-        <div className={`p-4 text-sm leading-relaxed shadow-sm w-full sm:max-w-[95%] ${
-          isAI 
-            ? 'glass-panel border-white rounded-2xl rounded-tl-none font-medium text-slate-700 bg-white/70' 
-            : 'bg-[var(--md-primary-container)] text-white rounded-2xl rounded-tr-none'
-        }`}>
+
+        <div
+          className={`p-4 text-sm leading-relaxed shadow-sm w-full sm:max-w-[95%] ${
+            isAI
+              ? "glass-panel border-white rounded-2xl rounded-tl-none font-medium text-slate-700 bg-white/70"
+              : "bg-[var(--md-primary-container)] text-white rounded-2xl rounded-tr-none"
+          }`}
+        >
           {message.text}
 
           {/* Conditional Rendering for AI Content */}
@@ -35,53 +76,71 @@ export default function ChatMessage({ message }) {
             <ChatChart data={message.chartData} config={message.chartConfig} />
           )}
 
-          {message.tableData && (() => {
-            const downloadCSV = () => {
-              const { headers, rows } = message.tableData;
-              const csvContent = [
-                headers.join(','),
-                ...rows.map(row => row.join(','))
-              ].join('\n');
-              
-              const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.href = url;
-              link.setAttribute('download', `cali_connect_report_${Date.now()}.csv`);
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-            };
+          {table &&
+            (() => {
+              const downloadCSV = () => {
+                const { headers, rows } = table;
+                const csvContent = [
+                  headers.join(","),
+                  ...rows.map((row) => row.join(",")),
+                ].join("\n");
 
-            return (
-              <div className="mt-4 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
-                    <tr>
-                      {message.tableData.headers.map((h, i) => <th key={i} className="px-3 py-2 text-[9px]">{h}</th>)}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {message.tableData.rows.map((row, i) => (
-                      <tr key={i} className="hover:bg-slate-50 transition-colors">
-                        {row.map((cell, idx) => (
-                          <td key={idx} className="px-3 py-2 text-slate-700">{cell}</td>
+                const blob = new Blob([csvContent], {
+                  type: "text/csv;charset=utf-8;",
+                });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.setAttribute(
+                  "download",
+                  `cali_connect_report_${Date.now()}.csv`,
+                );
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              };
+
+              return (
+                <div className="mt-4 bg-white rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-bold">
+                      <tr>
+                        {table.headers.map((h, i) => (
+                          <th key={i} className="px-3 py-2 text-[9px]">
+                            {h}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <div className="flex justify-end p-2 border-t border-slate-100 bg-slate-50 rounded-b-xl">
-                  <button 
-                    onClick={downloadCSV}
-                    className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--md-primary-container)] px-3 py-1.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 transition-all"
-                  >
-                    <span className="material-symbols-outlined text-[14px]">download</span> Descargar CSV
-                  </button>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {table.rows.map((row, i) => (
+                        <tr
+                          key={i}
+                          className="hover:bg-slate-50 transition-colors"
+                        >
+                          {row.map((cell, idx) => (
+                            <td key={idx} className="px-3 py-2 text-slate-700">
+                              {cell}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div className="flex justify-end p-2 border-t border-slate-100 bg-slate-50 rounded-b-xl">
+                    <button
+                      onClick={downloadCSV}
+                      className="flex items-center gap-1.5 text-[10px] font-bold text-[var(--md-primary-container)] px-3 py-1.5 rounded-lg hover:bg-teal-50 border border-transparent hover:border-teal-100 transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">
+                        download
+                      </span>{" "}
+                      Descargar CSV
+                    </button>
+                  </div>
                 </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
         </div>
       </div>
     </div>
