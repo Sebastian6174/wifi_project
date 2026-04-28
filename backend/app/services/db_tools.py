@@ -5,45 +5,60 @@ from sqlalchemy import text
 
 from app.core.database import engine
 
-_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_IDENTIFIER_RE = re.compile(r'^(?:[A-Za-z_][A-Za-z0-9_]*|"[^"]+")$')
 _TABLE_REF_RE = re.compile(
-    r'\b(?:from|join)\s+(?:(?:"?(?:public)"?\.)?)"?(?P<table>[A-Za-z_][A-Za-z0-9_]*)"?\b',
+    r'\b(?:from|join)\s+(?:(?:"?(?:public)"?\.)?)(?P<table>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")\b',
     flags=re.IGNORECASE,
 )
 _TABLE_ALIAS_RE = re.compile(
-    r'\b(?:from|join)\s+(?:(?:"?(?:public)"?\.)?)"?(?P<table>[A-Za-z_][A-Za-z0-9_]*)"?'
-    r'(?:\s+(?:as\s+)?"?(?P<alias>[A-Za-z_][A-Za-z0-9_]*)"?)?',
+    r'\b(?:from|join)\s+(?:(?:"?(?:public)"?\.)?)(?P<table>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")'
+    r'(?:\s+(?:as\s+)?(?P<alias>[A-Za-z_][A-Za-z0-9_]*|"[^"]+"))?',
     flags=re.IGNORECASE,
 )
 _ALIASED_COLUMN_RE = re.compile(
-    r'\b(?P<alias>[A-Za-z_][A-Za-z0-9_]*)\.(?P<column>[A-Za-z_][A-Za-z0-9_]*)\b'
+    r'\b(?P<alias>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")\.(?P<column>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")\b'
 )
-_ALLOWED_TABLES = {"zonas_wifi", "conexiones_wifi"}
+_ALLOWED_TABLES = {"wifi_points", "wifi_usage", "tecnicos", "tickets"}
 _ALLOWED_COLUMNS_BY_TABLE = {
-    "zonas_wifi": {
+    "wifi_points": {
         "id",
-        "nombre_zona",
-        "direccion",
-        "barrio",
-        "comuna",
-        "codigo",
-        "correo_electronico",
-        "latitud",
-        "longitud",
-        "proveedor_conectividad",
-        "velocidad",
-        "horarios",
+        "NOMBRE ZONA",
+        "DIRECCION",
+        "BARRIO",
+        "COMUNA",
+        "CODIGO",
+        "CORREO ELECTRÓNICO",
+        "LATITUD",
+        "LONGITUD",
+        "PROVEEDOR CONECTIVIDAD",
+        "VELOCIDAD",
+        "HORARIOS",
     },
-    "conexiones_wifi": {
+    "wifi_usage": {
         "id",
-        "fecha_conexion",
-        "area",
-        "nombre_zona",
-        "comuna",
-        "model",
-        "numero_conexiones",
-        "usage_kb",
-        "porcentaje_uso",
+        "FECHA CONEXION",
+        "AREA",
+        "NOMBRE ZONA",
+        "COMUNA",
+        "MODEL",
+        "NUMERO CONEXIONES",
+        "USAGE (kB)",
+        "PORCENTAJE USO",
+    },
+    "tecnicos": {
+        "id",
+        "nombre",
+        "especialidad",
+    },
+    "tickets": {
+        "id",
+        "tipo_anomalia",
+        "descripcion",
+        "estado",
+        "id_tecnico",
+        "created_at",
+        "resuelto_en",
+        "wifi_point_id",
     },
 }
 
@@ -97,7 +112,7 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
         raise ValueError("No se permiten multiples sentencias SQL.")
 
     referenced_tables = {
-        match.group("table").lower()
+        match.group("table").strip('"').lower()
         for match in _TABLE_REF_RE.finditer(sql)
         if match.group("table")
     }
@@ -106,13 +121,13 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
         raise ValueError(
             "La consulta referencia tablas no permitidas: "
             f"{', '.join(sorted(disallowed))}. "
-            "Tablas permitidas: conexiones_wifi, zonas_wifi."
+            "Tablas permitidas: wifi_points, wifi_usage, tecnicos, tickets."
         )
 
     alias_to_table: dict[str, str] = {}
     for match in _TABLE_ALIAS_RE.finditer(sql):
-        table = (match.group("table") or "").lower()
-        alias = (match.group("alias") or "").lower()
+        table = (match.group("table") or "").strip('"').lower()
+        alias = (match.group("alias") or "").strip('"').lower()
         if table not in _ALLOWED_TABLES:
             continue
         alias_to_table[table] = table
@@ -121,8 +136,8 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
 
     invalid_columns: list[str] = []
     for match in _ALIASED_COLUMN_RE.finditer(sql):
-        alias = match.group("alias").lower()
-        column = match.group("column").lower()
+        alias = match.group("alias").strip('"').lower()
+        column = match.group("column").strip('"')
         table = alias_to_table.get(alias)
         if not table:
             continue
@@ -134,12 +149,38 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
         raise ValueError(
             "La consulta usa columnas no permitidas o inexistentes: "
             f"{', '.join(sorted(set(invalid_columns)))}. "
-            "Revisa el esquema: "
-            "zonas_wifi(nombre_zona,direccion,barrio,comuna,codigo,correo_electronico,latitud,longitud,proveedor_conectividad,velocidad,horarios) "
-            "y conexiones_wifi(fecha_conexion,area,nombre_zona,comuna,model,numero_conexiones,usage_kb,porcentaje_uso)."
+            "Revisa el esquema disponible."
         )
 
     wrapped_sql = text(f"SELECT * FROM ({sql}) AS q LIMIT :limit")
     with engine.connect() as conn:
         rows = conn.execute(wrapped_sql, {"limit": limit})
         return [dict(row._mapping) for row in rows]
+
+
+def create_ticket(tipo_anomalia: str, descripcion: str, wifi_point_id: int | None = None) -> int:
+    """Crea un nuevo ticket unassigned."""
+    sql = text(
+        """
+        INSERT INTO tickets (tipo_anomalia, descripcion, estado, wifi_point_id)
+        VALUES (:tipo, :desc, 'open', :ap_id)
+        RETURNING id
+        """
+    )
+    with engine.begin() as conn:
+        result = conn.execute(sql, {"tipo": tipo_anomalia, "desc": descripcion, "ap_id": wifi_point_id})
+        return result.scalar_one()
+
+
+def update_ticket_technician(ticket_id: int, tecnico_id: int) -> bool:
+    """Asigna un tecnico a un ticket y cambia el estado a 'assigned'."""
+    sql = text(
+        """
+        UPDATE tickets
+        SET id_tecnico = :t_id, estado = 'assigned'
+        WHERE id = :tkt_id
+        """
+    )
+    with engine.begin() as conn:
+        result = conn.execute(sql, {"t_id": tecnico_id, "tkt_id": ticket_id})
+        return result.rowcount > 0

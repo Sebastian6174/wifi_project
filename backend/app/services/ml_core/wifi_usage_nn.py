@@ -8,6 +8,8 @@ anomalías por zona para la tool predict_anomaly.
 from __future__ import annotations
 
 import logging
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -64,24 +66,68 @@ def _table_columns(table_name: str) -> set[str]:
     return {str(row[0]) for row in rows}
 
 
+def _normalize_column_name(name: str) -> str:
+    normalized = unicodedata.normalize("NFKD", name)
+    ascii_name = "".join(ch for ch in normalized if not unicodedata.combining(ch))
+    ascii_name = ascii_name.lower().strip()
+    ascii_name = re.sub(r"[^a-z0-9]+", "_", ascii_name)
+    return ascii_name.strip("_")
+
+
 def _pick_first(columns: set[str], candidates: tuple[str, ...]) -> str | None:
+    normalized_map = {_normalize_column_name(col): col for col in columns}
     for candidate in candidates:
-        if candidate in columns:
-            return candidate
+        key = _normalize_column_name(candidate)
+        if key in normalized_map:
+            return normalized_map[key]
     return None
 
 
 def _resolve_usage_schema() -> dict[str, str]:
     # Prioriza tablas del esquema nuevo; cae al esquema legacy.
-    table_candidates = ("wifi_usage", "conexiones_wifi")
+    table_candidates = ("wifi_usage", "wifi_points")
+    found_tables = []
+    
     for table_name in table_candidates:
         if not _table_exists(table_name):
             continue
+        
+        found_tables.append(table_name)
         cols = _table_columns(table_name)
-        zone_col = _pick_first(cols, ("nombre_zona", "zone_name", "zona", "nombre"))
-        comuna_col = _pick_first(cols, ("comuna", "commune"))
-        conn_col = _pick_first(cols, ("numero_conexiones", "num_connections", "connections"))
-        usage_col = _pick_first(cols, ("usage_kb", "uso_kb", "kb_usage"))
+        
+        zone_col = _pick_first(
+            cols,
+            (
+                "NOMBRE ZONA",
+                "nombre_zona",
+                "nombre zona",
+                "zone_name",
+                "zona",
+                "nombre",
+            ),
+        )
+        comuna_col = _pick_first(cols, ("COMUNA", "comuna", "commune"))
+        conn_col = _pick_first(
+            cols,
+            (
+                "NUMERO CONEXIONES",
+                "numero_conexiones",
+                "numero conexiones",
+                "num_connections",
+                "connections",
+            ),
+        )
+        usage_col = _pick_first(
+            cols,
+            (
+                "USAGE (kB)",
+                "usage_kb",
+                "usage (kb)",
+                "uso_kb",
+                "kb_usage",
+            ),
+        )
+        
         if comuna_col and conn_col and usage_col:
             return {
                 "table": table_name,
@@ -90,10 +136,18 @@ def _resolve_usage_schema() -> dict[str, str]:
                 "conn_col": conn_col,
                 "usage_col": usage_col,
             }
+        else:
+            logger.warning(
+                "Tabla %s encontrada pero faltan columnas requeridas. Encontradas: %s. "
+                "Buscadas: comuna=%s, conn=%s, usage=%s",
+                table_name, cols, comuna_col, conn_col, usage_col
+            )
+
     raise RuntimeError(
-        "No se encontró un esquema compatible para uso WiFi. "
-        "Se esperaba tabla wifi_usage o conexiones_wifi con columnas de comuna, conexiones y usage_kb."
+        f"No se encontró un esquema compatible para uso WiFi. Tablas revisadas: {found_tables}. "
+        "Se esperaba tabla wifi_usage o wifi_points con columnas equivalentes a: comuna, numero conexiones y usage_kb."
     )
+
 
 
 def _one_hot_encoder() -> OneHotEncoder:
@@ -262,19 +316,24 @@ def run_anomaly_detection_for_zone(zone_name: str) -> dict[str, Any]:
     detail_sql = text(
         f"""
         SELECT
-            CAST({zone_col} AS TEXT) AS nombre_zona,
-            CAST({comuna_col} AS TEXT) AS comuna,
-            CAST({conn_col} AS DOUBLE PRECISION) AS numero_conexiones,
-            CAST({usage_col} AS DOUBLE PRECISION) AS usage_kb
-        FROM {table}
-        WHERE CAST({zone_col} AS TEXT) ILIKE :zone_pattern
-          AND {comuna_col} IS NOT NULL
-          AND TRIM(CAST({comuna_col} AS TEXT)) <> ''
-          AND {conn_col} IS NOT NULL
-          AND {usage_col} IS NOT NULL
+            p.id,
+            CAST(u.{zone_col} AS TEXT) AS nombre_zona,
+            CAST(u.{comuna_col} AS TEXT) AS comuna,
+            CAST(u.{conn_col} AS DOUBLE PRECISION) AS numero_conexiones,
+            CAST(u.{usage_col} AS DOUBLE PRECISION) AS usage_kb,
+            CAST(p."LATITUD" AS DOUBLE PRECISION) AS lat,
+            CAST(p."LONGITUD" AS DOUBLE PRECISION) AS lng
+        FROM {table} u
+        LEFT JOIN wifi_points p ON u.{zone_col} = p."NOMBRE ZONA"
+        WHERE CAST(u.{zone_col} AS TEXT) ILIKE :zone_pattern
+          AND u.{comuna_col} IS NOT NULL
+          AND TRIM(CAST(u.{comuna_col} AS TEXT)) <> ''
+          AND u.{conn_col} IS NOT NULL
+          AND u.{usage_col} IS NOT NULL
         LIMIT 300
         """
     )
+
     try:
         with engine.connect() as conn:
             result = conn.execute(detail_sql, {"zone_pattern": f"%{zone_name.strip()}%"}).fetchall()

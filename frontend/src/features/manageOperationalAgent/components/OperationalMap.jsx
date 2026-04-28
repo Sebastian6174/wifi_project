@@ -33,8 +33,8 @@ const FILTER_OPTIONS = [
 ];
 
 function APMarker({ ap }) {
-  const cfg = STATUS_CONFIG[ap.status];
-  const isFault = ap.status === 'anomaly' || ap.status === 'offline';
+  const cfg = STATUS_CONFIG[ap.status] || STATUS_CONFIG.anomaly;
+  const isFault = ap.status === 'anomaly' || ap.status === 'offline' || !STATUS_CONFIG[ap.status];
 
   return (
     <MapMarker longitude={ap.lng} latitude={ap.lat}>
@@ -90,9 +90,10 @@ function APMarker({ ap }) {
 export default function OperationalMap({ accessPoints = [], onlineCount, anomalyCount }) {
   const [filter,     setFilter]     = useState('all');
 
-  const visible = filter === 'all'
+  const visible = (filter === 'all'
     ? accessPoints
-    : accessPoints.filter(ap => ap.status === filter);
+    : accessPoints.filter(ap => ap.status === filter)
+  ).filter(ap => ap.lat !== null && ap.lng !== null && !isNaN(ap.lat) && !isNaN(ap.lng));
 
   return (
     <div className="op-map-card glass-panel rounded-2xl overflow-hidden relative shadow-xl border border-white/60">

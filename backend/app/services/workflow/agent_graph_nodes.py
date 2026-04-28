@@ -36,6 +36,27 @@ def _last_tool_output(messages: list[Any]) -> str | None:
     return None
 
 
+def _extract_zone_candidate(user_text: str) -> str:
+    # Ignore memory context for extraction
+    clean_text = user_text.split("Memoria corta de la conversacion")[0]
+    lowered = clean_text.lower()
+    
+    if "general" in lowered:
+        return ""
+        
+    for marker in ("zona ", "comuna "):
+        idx = lowered.find(marker)
+        if idx >= 0:
+            tail = clean_text[idx + len(marker) :].strip()
+            candidate = tail.split()[0].strip(",.;:!?()[]{}\"'")
+            if candidate:
+                return candidate
+                
+    # Fallback: if no specific zone, return empty for global analysis
+    return ""
+
+
+
 def build_nodes(
     generate_text: Callable[[str], Any],
 ) -> dict[str, Callable[[AgentState], Any]]:
@@ -105,66 +126,96 @@ def build_nodes(
                 ],
             }
         return {"next_agent": "final", "messages": [AIMessage(content=parsed.get("answer", ""))]}
-
-    async def operativo_node(state: AgentState) -> dict[str, Any]:
+    async def operativo_node(state: AgentState) -> dict[str, Any]:
         user_text = _last_user_text(state["messages"])
-        tool_output = _last_tool_output(state["messages"])
-        if tool_output:
-            answer = await generate_text(
-                "Eres el Agente Operativo. Con base en el resultado de tool, entrega diagnostico, "
-                "alerta y orden de trabajo priorizada. No solicites mas tools.\n\n"
-                f"Consulta original:\n{user_text}\n\n"
-                f"Resultado de tool:\n{tool_output}"
+        last_msg = state["messages"][-1]
+        
+        # Si venimos de una tool, evaluamos qué paso sigue
+        if isinstance(last_msg, ToolMessage):
+            tool_name = last_msg.name
+            tool_output = last_msg.content
+            
+            prompt = f"""
+                Eres el Agente Operativo. Acabas de ejecutar la tool '{tool_name}'.
+                Resultado: {tool_output}
+                
+                Tu objetivo es completar este FLUJO OBLIGATORIO para gestionar anomalías:
+                
+                PASO 1: Detectar anomalías (ya ejecutado si vienes de predict_anomaly).
+                PASO 2: Crear tickets unassigned. Usa 'create_unassigned_tickets' con los datos de las anomalías. 
+                        Argumento: {{"anomalies": [ {{"tipo_anomalia": "...", "descripcion": "...", "wifi_point_id": ...}}, ... ]}}
+                        IMPORTANTE: Usa el 'id' del punto wifi obtenido de la evidencia como 'wifi_point_id'.
+                PASO 3: Obtener técnicos. Usa 'query_wifi_database' para listar técnicos disponibles (SELECT * FROM tecnicos).
+                PASO 4: Asignar tickets. Usa 'create_work_orders' pasando los 'ticket_id' y 'tecnico_id'.
+                        Argumento: {{"assignments": [ {{"ticket_id": ..., "tecnico_id": ...}}, ... ]}}
+                PASO 5: Respuesta final. Solo cuando todo esté asignado en la DB, genera el diagnóstico para el usuario.
+                
+                Esquema DB: {DB_SCHEMA_PROMPT}
+                
+                REGLA DE ORO: No te saltes pasos. Si acabas de crear tickets, el siguiente paso es buscar técnicos y luego asignar.
+                
+                Devuelve SOLO JSON:
+                {{"action":"tool","tool":"...","args":{{...}}}}
+                o
+                {{"action":"final","answer":"..."}}
+                
+                Consulta original: {user_text}
+            """
+            raw = await generate_text(prompt)
+            parsed = _safe_json(raw, {"action": "final", "answer": raw})
+            
+            if parsed.get("action") == "tool":
+                t_name = parsed.get("tool")
+                t_args = parsed.get("args", {})
+                
+                # Asegurar que args sea un diccionario para tool_calls
+                if not isinstance(t_args, dict):
+                    t_args = { "input": t_args }
+
+                return {
+                    "active_agent": "operativo",
+                    "messages": [
+                        AIMessage(
+                            content=f"Continuando flujo operativo con {t_name}.",
+                            tool_calls=[{
+                                "id": f"call_op_{t_name}_{len(state['messages'])}",
+                                "name": t_name,
+                                "args": t_args,
+                            }],
+                        )
+                    ],
+                }
+            
+            # Si es final, formatear según las reglas de visualización del mapa
+            final_context = [str(m.content) for m in state["messages"][-6:]]
+            final_answer = await generate_text(
+                f"Genera la respuesta final basada en este flujo operativo. \n"
+                "Reglas de estructura:\n"
+                "1) Diagnostico tecnico\n"
+                "2) Evidencia (datos clave del tool)\n"
+                "3) Acciones recomendadas priorizadas\n"
+                "4) Bloque JSON final en ```json ... ``` (id, name, status, lat, lng)\n"
+                "IMPORTANTE: El JSON debe incluir TODAS las anomalías detectadas para que aparezcan en el mapa.\n\n"
+                f"Contexto: {final_context}"
             )
-            return {"next_agent": "final", "messages": [AIMessage(content=answer)]}
+            return {"next_agent": "final", "messages": [AIMessage(content=final_answer)]}
 
-        prompt = f"""
-                    Eres el Agente Operativo.
-                    Objetivo: detectar anomalias, generar alertas automaticas y crear ordenes de trabajo priorizadas.
-                    Aunque estas funciones estan en definicion, puedes usar tools:
-                    - predict_anomaly(zone_name)
-                    - create_work_orders(signal)
-                    - query_wifi_database(sql) para evidencias de soporte
-                    {DB_SCHEMA_PROMPT}
+        # Inicio del flujo
+        zone_candidate = _extract_zone_candidate(user_text)
+        return {
+            "active_agent": "operativo",
+            "messages": [
+                AIMessage(
+                    content="Iniciando diagnóstico operativo y detección de anomalías.",
+                    tool_calls=[{
+                        "id": "call_op_predict_anomaly",
+                        "name": "predict_anomaly",
+                        "args": {"zone_name": zone_candidate},
+                    }],
+                )
+            ],
+        }
 
-                    Devuelve SOLO JSON:
-                    1) Tool:
-                    {{"action":"tool","tool":"predict_anomaly|create_work_orders|query_wifi_database","input":"..."}}
-                    2) Final:
-                    {{"action":"final","answer":"..."}}
-
-                    Consulta:
-                    {user_text}
-                """
-        raw = await generate_text(prompt)
-        parsed = _safe_json(raw, {"action": "final", "answer": raw})
-        if parsed.get("action") == "tool":
-            tool_name = parsed.get("tool", "predict_anomaly")
-            if tool_name not in {"predict_anomaly", "create_work_orders", "query_wifi_database"}:
-                tool_name = "predict_anomaly"
-            arg_name = (
-                "zone_name"
-                if tool_name == "predict_anomaly"
-                else "sql"
-                if tool_name == "query_wifi_database"
-                else "signal"
-            )
-            return {
-                "active_agent": "operativo",
-                "messages": [
-                    AIMessage(
-                        content=f"Ejecutando {tool_name} para gestion operativa.",
-                        tool_calls=[
-                            {
-                                "id": "call_operativo_tool",
-                                "name": tool_name,
-                                "args": {arg_name: parsed.get("input", "")},
-                            }
-                        ],
-                    )
-                ],
-            }
-        return {"next_agent": "final", "messages": [AIMessage(content=parsed.get("answer", ""))]}
 
     async def estrategico_node(state: AgentState) -> dict[str, Any]:
         user_text = _last_user_text(state["messages"])
