@@ -2,7 +2,7 @@ import ManageStrategicAgent from "../features/manageStrategicAgent/ManageStrateg
 
 export default function StrategicAgentPage() {
   return (
-    <div className="w-full min-h-screen bg-[#f8f9ff]">
+    <div className="w-full">
       {/* 
         Strategic background pattern - minimal to allow content to breathe
         Matches the "salsa-path-bg" concept without overriding React layout flows 

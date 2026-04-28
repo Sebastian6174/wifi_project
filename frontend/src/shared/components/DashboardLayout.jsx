@@ -55,7 +55,7 @@ export default function DashboardLayout() {
       {/* ── Top App Bar ── */}
       <PageHeader />
 
-      <div className="flex pt-12 min-h-screen">
+      <div className="flex pt-16 min-h-screen">
         {/* ── Mobile overlay ── */}
         {mobileOpen && (
           <div
@@ -73,88 +73,78 @@ export default function DashboardLayout() {
             mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           ].join(" ")}
         >
-          {/* Brand header */}
-          <div className="px-5 mb-5">
-            <div className="flex items-center gap-2.5">
-              <div className="sidebar-brand-icon p-1.5">
-                <span
-                  className="material-symbols-outlined text-white text-[18px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  security
-                </span>
-              </div>
-              <div>
-                <p className="sidebar-brand-title text-sm">Network Control</p>
-                <p className="sidebar-brand-sub text-[10px]">
-                  Santiago de Cali
-                </p>
-              </div>
-            </div>
+          {/* Simplified Brand section */}
+          <div className="mb-8 px-4">
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1 opacity-60">Operación</p>
+            <p className="text-sm font-black text-[#004851] tracking-tight">Santiago de Cali</p>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 flex flex-col gap-0.5 overflow-y-auto">
+          <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto px-2">
             {NAV_ITEMS.map(({ to, label, icon, iconFill }) => (
               <NavLink
                 key={to}
                 to={to}
                 className={({ isActive }) =>
-                  ["dash-nav-link text-xs py-2", isActive ? "active" : ""].join(
-                    " ",
-                  )
+                  `flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all ${
+                    isActive
+                      ? "text-[#004851] font-bold bg-[#004851]/10"
+                      : "text-slate-500 hover:bg-slate-50 font-medium"
+                  }`
                 }
                 onClick={() => setMobileOpen(false)}
               >
-                <span
-                  className="material-symbols-outlined text-[18px]"
-                  style={
-                    iconFill ? { fontVariationSettings: "'FILL' 1" } : undefined
-                  }
-                >
-                  {icon}
-                </span>
-                <span>{label}</span>
+                {({ isActive }) => (
+                  <>
+                    <span
+                      className="material-symbols-outlined text-[18px]"
+                      style={{
+                        fontVariationSettings: isActive || iconFill ? "'FILL' 1" : "",
+                      }}
+                    >
+                      {icon}
+                    </span>
+                    <span className="text-sm">{label}</span>
+                  </>
+                )}
               </NavLink>
             ))}
           </nav>
 
           {/* Bottom section */}
-          <div className="mt-auto px-5 flex flex-col gap-3 pt-5">
-            {/* Report Incident CTA */}
-            <button className="report-incident-btn text-xs py-2">
-              Report Incident
+          <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-1 px-2 pb-4">
+            <a
+              href="#"
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-[#004851] hover:bg-slate-50 font-medium transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                analytics
+              </span>
+              System Health
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-[#004851] hover:bg-slate-50 font-medium transition-colors"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                contact_support
+              </span>
+              Soporte
+            </a>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs text-slate-500 hover:text-rose-500 hover:bg-rose-50 font-medium transition-colors w-full text-left"
+            >
+              <span className="material-symbols-outlined text-[16px]">
+                logout
+              </span>
+              Cerrar Sesión
             </button>
-
-            {/* Footer links */}
-            <div className="border-t border-slate-100 pt-3 flex flex-col gap-1">
-              <a href="#" className="sidebar-footer-link text-xs py-1.5">
-                <span className="material-symbols-outlined text-[16px]">
-                  analytics
-                </span>
-                System Health
-              </a>
-              <a href="#" className="sidebar-footer-link text-xs py-1.5">
-                <span className="material-symbols-outlined text-[16px]">
-                  contact_support
-                </span>
-                Support
-              </a>
-              <button
-                onClick={handleLogout}
-                className="sidebar-footer-link w-full text-left hover:!text-red-500 text-xs py-1.5"
-              >
-                <span className="material-symbols-outlined text-[16px]">
-                  logout
-                </span>
-                Sign Out
-              </button>
-            </div>
           </div>
         </aside>
 
         {/* ── Main content ── */}
-        <main className="flex-1 flex flex-col relative h-[calc(100vh-48px)] overflow-auto salsa-pattern">
+        <main className="flex-1 flex flex-col relative h-[calc(100vh-64px)] overflow-auto salsa-pattern">
           {/* Mobile menu toggle */}
           <div className="lg:hidden p-3">
             <button
