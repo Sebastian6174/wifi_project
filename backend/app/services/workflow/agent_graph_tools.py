@@ -5,6 +5,9 @@ from langgraph.prebuilt import ToolNode
 
 from app.services.db_tools import run_readonly_query
 
+from app.services.ml_core.wifi_usage_nn import run_anomaly_detection_for_zone
+
+
 DB_SCHEMA_PROMPT = """
 Esquema SQL real disponible (NO inventar columnas):
 
@@ -53,8 +56,6 @@ def predict_anomaly(zone_name: str) -> str:
     comuna y numero_conexiones (80/20 train/test). Si no hay datos o el modelo no
     puede entrenarse, usa heurística por agregados de zona.
     """
-    from ml_core.wifi_usage_nn import run_anomaly_detection_for_zone
-
     report = run_anomaly_detection_for_zone(zone_name)
     return json.dumps(report, ensure_ascii=False, default=str)
 

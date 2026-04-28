@@ -21,9 +21,9 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.database import engine
-from app.services.db_tools import run_readonly_query
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +32,68 @@ BUNDLE_PATH = ARTIFACT_DIR / "wifi_usage_mlp.joblib"
 
 MIN_ROWS_FOR_TRAINING = 40
 ANOMALY_SIGMA = 2.0
+
+
+def _quote_ident(identifier: str) -> str:
+    return '"' + identifier.replace('"', '""') + '"'
+
+
+def _table_exists(table_name: str) -> bool:
+    sql = text(
+        """
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = :table_name
+        LIMIT 1
+        """
+    )
+    with engine.connect() as conn:
+        return conn.execute(sql, {"table_name": table_name}).scalar() is not None
+
+
+def _table_columns(table_name: str) -> set[str]:
+    sql = text(
+        """
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = :table_name
+        """
+    )
+    with engine.connect() as conn:
+        rows = conn.execute(sql, {"table_name": table_name}).fetchall()
+    return {str(row[0]) for row in rows}
+
+
+def _pick_first(columns: set[str], candidates: tuple[str, ...]) -> str | None:
+    for candidate in candidates:
+        if candidate in columns:
+            return candidate
+    return None
+
+
+def _resolve_usage_schema() -> dict[str, str]:
+    # Prioriza tablas del esquema nuevo; cae al esquema legacy.
+    table_candidates = ("wifi_usage", "conexiones_wifi")
+    for table_name in table_candidates:
+        if not _table_exists(table_name):
+            continue
+        cols = _table_columns(table_name)
+        zone_col = _pick_first(cols, ("nombre_zona", "zone_name", "zona", "nombre"))
+        comuna_col = _pick_first(cols, ("comuna", "commune"))
+        conn_col = _pick_first(cols, ("numero_conexiones", "num_connections", "connections"))
+        usage_col = _pick_first(cols, ("usage_kb", "uso_kb", "kb_usage"))
+        if comuna_col and conn_col and usage_col:
+            return {
+                "table": table_name,
+                "zone_col": zone_col or comuna_col,
+                "comuna_col": comuna_col,
+                "conn_col": conn_col,
+                "usage_col": usage_col,
+            }
+    raise RuntimeError(
+        "No se encontró un esquema compatible para uso WiFi. "
+        "Se esperaba tabla wifi_usage o conexiones_wifi con columnas de comuna, conexiones y usage_kb."
+    )
 
 
 def _one_hot_encoder() -> OneHotEncoder:
@@ -62,14 +124,22 @@ def _build_pipeline() -> Pipeline:
 
 
 def _load_training_frame() -> pd.DataFrame:
+    schema = _resolve_usage_schema()
+    table = _quote_ident(schema["table"])
+    comuna_col = _quote_ident(schema["comuna_col"])
+    conn_col = _quote_ident(schema["conn_col"])
+    usage_col = _quote_ident(schema["usage_col"])
     sql = text(
-        """
-        SELECT comuna, numero_conexiones, usage_kb
-        FROM conexiones_wifi
-        WHERE comuna IS NOT NULL
-          AND TRIM(comuna) <> ''
-          AND numero_conexiones IS NOT NULL
-          AND usage_kb IS NOT NULL
+        f"""
+        SELECT
+            {comuna_col} AS comuna,
+            {conn_col} AS numero_conexiones,
+            {usage_col} AS usage_kb
+        FROM {table}
+        WHERE {comuna_col} IS NOT NULL
+          AND TRIM(CAST({comuna_col} AS TEXT)) <> ''
+          AND {conn_col} IS NOT NULL
+          AND {usage_col} IS NOT NULL
         """
     )
     with engine.connect() as conn:
@@ -138,20 +208,27 @@ def get_or_train_bundle() -> dict[str, Any]:
 
 
 def _heuristic_zone_report(zone_name: str) -> dict[str, Any]:
-    safe_zone = zone_name.strip().replace("'", "''")
-    query = f"""
-    SELECT
-      nombre_zona,
-      AVG(numero_conexiones) AS avg_conexiones,
-      MAX(numero_conexiones) AS max_conexiones,
-      MIN(numero_conexiones) AS min_conexiones
-    FROM conexiones_wifi
-    WHERE nombre_zona ILIKE '%{safe_zone}%'
-    GROUP BY nombre_zona
-    ORDER BY avg_conexiones DESC
-    LIMIT 5
-    """
-    rows = run_readonly_query(query, limit=10)
+    schema = _resolve_usage_schema()
+    table = _quote_ident(schema["table"])
+    zone_col = _quote_ident(schema["zone_col"])
+    conn_col = _quote_ident(schema["conn_col"])
+    sql = text(
+        f"""
+        SELECT
+            CAST({zone_col} AS TEXT) AS nombre_zona,
+            AVG(CAST({conn_col} AS DOUBLE PRECISION)) AS avg_conexiones,
+            MAX(CAST({conn_col} AS DOUBLE PRECISION)) AS max_conexiones,
+            MIN(CAST({conn_col} AS DOUBLE PRECISION)) AS min_conexiones
+        FROM {table}
+        WHERE CAST({zone_col} AS TEXT) ILIKE :zone_pattern
+        GROUP BY CAST({zone_col} AS TEXT)
+        ORDER BY avg_conexiones DESC
+        LIMIT 5
+        """
+    )
+    with engine.connect() as conn:
+        result = conn.execute(sql, {"zone_pattern": f"%{zone_name.strip()}%"}).fetchall()
+    rows = [dict(row._mapping) for row in result]
     return {
         "zone_name": zone_name,
         "status": "ok" if rows else "sin_datos",
@@ -166,20 +243,63 @@ def run_anomaly_detection_for_zone(zone_name: str) -> dict[str, Any]:
     Para filas de conexiones_wifi de la zona: predice usage_kb y marca anomalías si el
     residual supera ANOMALY_SIGMA * residual_std del conjunto de prueba.
     """
-    safe_zone = zone_name.strip().replace("'", "''")
-    detail_query = f"""
-    SELECT nombre_zona, comuna, numero_conexiones, usage_kb
-    FROM conexiones_wifi
-    WHERE nombre_zona ILIKE '%{safe_zone}%'
-      AND comuna IS NOT NULL
-      AND TRIM(comuna) <> ''
-      AND numero_conexiones IS NOT NULL
-      AND usage_kb IS NOT NULL
-    LIMIT 300
-    """
-    rows = run_readonly_query(detail_query, limit=300)
+    try:
+        schema = _resolve_usage_schema()
+    except Exception as exc:
+        return {
+            "zone_name": zone_name,
+            "status": "error_schema",
+            "message": "No se encontró un esquema de datos WiFi compatible para detectar anomalías.",
+            "error": str(exc),
+            "data": [],
+        }
+
+    table = _quote_ident(schema["table"])
+    zone_col = _quote_ident(schema["zone_col"])
+    comuna_col = _quote_ident(schema["comuna_col"])
+    conn_col = _quote_ident(schema["conn_col"])
+    usage_col = _quote_ident(schema["usage_col"])
+    detail_sql = text(
+        f"""
+        SELECT
+            CAST({zone_col} AS TEXT) AS nombre_zona,
+            CAST({comuna_col} AS TEXT) AS comuna,
+            CAST({conn_col} AS DOUBLE PRECISION) AS numero_conexiones,
+            CAST({usage_col} AS DOUBLE PRECISION) AS usage_kb
+        FROM {table}
+        WHERE CAST({zone_col} AS TEXT) ILIKE :zone_pattern
+          AND {comuna_col} IS NOT NULL
+          AND TRIM(CAST({comuna_col} AS TEXT)) <> ''
+          AND {conn_col} IS NOT NULL
+          AND {usage_col} IS NOT NULL
+        LIMIT 300
+        """
+    )
+    try:
+        with engine.connect() as conn:
+            result = conn.execute(detail_sql, {"zone_pattern": f"%{zone_name.strip()}%"}).fetchall()
+        rows = [dict(row._mapping) for row in result]
+    except SQLAlchemyError as exc:
+        logger.warning("Fallo consulta para anomalias en tabla %s: %s", schema["table"], exc)
+        return {
+            "zone_name": zone_name,
+            "status": "error_query",
+            "message": "No se pudieron consultar los datos de uso para detectar anomalías.",
+            "error": str(exc),
+            "data": [],
+        }
+
     if not rows:
-        return _heuristic_zone_report(zone_name)
+        try:
+            return _heuristic_zone_report(zone_name)
+        except Exception:
+            return {
+                "zone_name": zone_name,
+                "status": "sin_datos",
+                "model": {"source": "mlp_regressor"},
+                "prediction_hint": "No se encontraron filas para la zona consultada.",
+                "data": [],
+            }
 
     try:
         bundle = get_or_train_bundle()

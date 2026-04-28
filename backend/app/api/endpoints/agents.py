@@ -5,6 +5,7 @@ from fastapi import APIRouter, HTTPException
 from app.core.gemini_config import generate_gemini_response
 from app.schemas.agent_schema import AgentInput, AgentPromptRequest, AgentPromptResponse
 from app.services.workflow.langgraph_workflow import run_multiagent_prompt
+from app.services.workflow.operational_workflow import run_operational_prompt
 
 router = APIRouter()
 logger = logging.getLogger("app.agents")
@@ -38,6 +39,13 @@ async def _run_agent(request: AgentPromptRequest) -> AgentPromptResponse:
         if request.agent_type == "conversacional":
             logger.info("Ejecutando flujo LangGraph multi-agente para consulta conversacional")
             answer = await run_multiagent_prompt(
+                request.prompt,
+                request.context,
+                request.conversation_id,
+            )
+        elif request.agent_type == "operativo":
+            logger.info("Ejecutando flujo LangGraph operativo dedicado")
+            answer = await run_operational_prompt(
                 request.prompt,
                 request.context,
                 request.conversation_id,
