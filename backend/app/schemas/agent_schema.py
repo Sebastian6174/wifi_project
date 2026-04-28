@@ -29,3 +29,5 @@ class AgentPromptRequest(BaseModel):
 class AgentPromptResponse(BaseModel):
     agent_type: str
     answer: str
+    prediction: dict | None = None
+    anomalies: list[dict] | None = None

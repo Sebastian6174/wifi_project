@@ -7,7 +7,7 @@ import unicodedata
 import pandas as pd
 
 from app.core.database import Base, engine
-from app.models import ConexionWifi, ZonaWifi
+from app.models import WifiPoint, WifiUsage, Client
 
 logger = logging.getLogger(__name__)
 
@@ -133,9 +133,9 @@ def clean_connections_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
 def _clean_by_table_name(df: pd.DataFrame, table_name: str) -> pd.DataFrame:
     normalized = table_name.strip().lower()
-    if normalized == ZonaWifi.__tablename__:
+    if normalized == WifiPoint.__tablename__:
         return clean_wifi_dataframe(df)
-    if normalized == ConexionWifi.__tablename__:
+    if normalized == WifiUsage.__tablename__:
         return clean_connections_dataframe(df)
     return df
 
@@ -190,7 +190,7 @@ async def etl_csv_to_table(
     """
 
     def _run() -> int:
-        Base.metadata.create_all(bind=engine, tables=[ZonaWifi.__table__, ConexionWifi.__table__])
+        Base.metadata.create_all(bind=engine, tables=[WifiPoint.__table__, WifiUsage.__table__])
         df = read_csv_dataframe(csv_path)
         df = _clean_by_table_name(df, table_name)
         _dataframe_to_sql_sync(
