@@ -12,7 +12,7 @@ export default function ManageApplyStrategy() {
     steps, updateStep, addStep, removeStep, moveStep,
     budgetItems, updateBudgetItem, addBudgetItem, removeBudgetItem,
     subtotal, contingency, grandTotal, totalHours,
-    loading, error, saved, handleSave,
+    loading, error, saved, handleSave, resetForm,
   } = usePlanForm();
 
   // When AI suggests a step, add it as a note to a new step
@@ -40,6 +40,7 @@ export default function ManageApplyStrategy() {
           loading={loading}
           saved={saved}
           onSave={handleSave}
+          onReset={resetForm}
         />
 
         {error && (

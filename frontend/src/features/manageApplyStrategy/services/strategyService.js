@@ -105,5 +105,15 @@ export const strategyService = {
         unitCost: item.unit_cost,
       })),
     };
+  },
+
+  async getPlans() {
+    const { data, error } = await supabase
+      .from("strategic_plans")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data;
   }
 };

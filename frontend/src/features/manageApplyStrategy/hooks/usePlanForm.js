@@ -125,11 +125,19 @@ export default function usePlanForm() {
     }
   }, [meta, steps, budgetItems, subtotal, contingency, grandTotal, totalHours]);
 
+  const resetForm = useCallback(() => {
+    setMeta(DEFAULT_META);
+    setSteps(DEFAULT_STEPS);
+    setBudgetItems([DEFAULT_BUDGET_ITEM()]);
+    setSaved(false);
+    setError(null);
+  }, []);
+
   return {
     meta, updateMeta,
     steps, updateStep, addStep, removeStep, moveStep,
     budgetItems, updateBudgetItem, addBudgetItem, removeBudgetItem,
     subtotal, contingency, grandTotal, totalHours,
-    loading, error, saved, handleSave,
+    loading, error, saved, handleSave, resetForm,
   };
 }

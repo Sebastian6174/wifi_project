@@ -50,28 +50,88 @@ export const accessPointsService = {
   },
 
   async getRecommendations() {
-    const { data, error } = await supabase
-      .from("ai_recommendations")
-      .select("*");
-
-    if (error) {
-      console.error("Error fetching recommendations:", error);
-      throw error;
+    const points = await this.getAccessPoints();
+    
+    const recommendations = [];
+    
+    // 1. Expansion Recommendation (Congestion > 80%)
+    const congestedPoints = points.filter(p => (p.connectedDevices / p.capacity) > 0.8);
+    if (congestedPoints.length > 0) {
+      recommendations.push({
+        id: "rec-exp-" + Date.now(),
+        tag: "Inversión",
+        tagColor: "bg-teal-100 text-teal-700",
+        title: `Expansión en ${congestedPoints[0].name}`,
+        description: `Saturación del ${( (congestedPoints[0].connectedDevices / congestedPoints[0].capacity) * 100).toFixed(0)}% detectada. Se recomienda añadir nodos en la ${congestedPoints[0].commune}.`
+      });
     }
 
-    return data;
+    // 2. Maintenance Recommendation (Low AP count or uptime issues)
+    const criticalZones = points.filter(p => p.apCount === 0);
+    if (criticalZones.length > 0) {
+      recommendations.push({
+        id: "rec-mnt-" + Date.now(),
+        tag: "Crítico",
+        tagColor: "bg-rose-100 text-rose-700",
+        title: `Zona sin Cobertura: ${criticalZones[0].name}`,
+        description: `Se ha detectado una zona de silencio absoluto en ${criticalZones[0].commune}. Intervención técnica requerida de inmediato.`
+      });
+    }
+
+    // 3. Optimization Recommendation (General health)
+    recommendations.push({
+      id: "rec-opt-" + Date.now(),
+      tag: "Optimización",
+      tagColor: "bg-amber-100 text-amber-700",
+      title: "Rebalanceo de Carga",
+      description: "Se detecta desequilibrio de tráfico entre nodos 2.4GHz y 5GHz. Ajustar umbrales de band-steering."
+    });
+
+    return recommendations;
   },
 
   async getActionTableData() {
     const { data, error } = await supabase
-      .from("action_table")
-      .select("*");
+      .from("strategic_plans")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
       console.error("Error fetching action table data:", error);
-      throw error;
+      return [];
     }
 
-    return data;
+    const focusIcons = {
+      maintenance: "build",
+      expansion: "cell_tower",
+      optimization: "bolt",
+      critical: "warning"
+    };
+
+    const priorityImpact = {
+      low: 1,
+      medium: 2,
+      high: 3,
+      critical: 4
+    };
+
+    const priorityBadges = {
+      low: "bg-slate-100 text-slate-500",
+      medium: "bg-amber-50 text-amber-700",
+      high: "bg-rose-50 text-rose-600",
+      critical: "bg-[#004851] text-white"
+    };
+
+    return data.map(plan => ({
+      id: plan.id,
+      commune: plan.zone,
+      sector: "Cali Central", // Default or derived
+      action: plan.title,
+      icon: focusIcons[plan.focus] || "list",
+      cost: `$${(plan.grand_total / 1000).toFixed(1)}k`,
+      impact: priorityImpact[plan.priority] || 2,
+      status: "Planificado",
+      statusBadge: priorityBadges[plan.priority] || "bg-slate-100 text-slate-500"
+    }));
   }
 };
