@@ -9,42 +9,58 @@ from app.services.ml_core.wifi_usage_nn import run_anomaly_detection_for_zone
 
 
 DB_SCHEMA_PROMPT = """
-Esquema SQL real disponible (NO inventar columnas):
+Esquema SQL real disponible (IMPORTANTE: USAR COMILLAS DOBLES PARA COLUMNAS CON ESPACIOS):
 
-Tabla zonas_wifi:
+Tabla wifi_points:
 - id
-- nombre_zona
-- direccion
-- barrio
-- comuna
-- codigo
-- correo_electronico
-- latitud
-- longitud
-- proveedor_conectividad
-- velocidad
-- horarios
+- "NOMBRE ZONA"
+- "DIRECCION"
+- "BARRIO"
+- "COMUNA"
+- "CODIGO"
+- "CORREO ELECTRÓNICO"
+- "LATITUD"
+- "LONGITUD"
+- "PROVEEDOR CONECTIVIDAD"
+- "VELOCIDAD"
+- "HORARIOS"
 
-Tabla conexiones_wifi:
+Tabla wifi_usage:
 - id
-- fecha_conexion
-- area
-- nombre_zona
-- comuna
-- model
-- numero_conexiones
-- usage_kb
-- porcentaje_uso
+- "FECHA CONEXION"
+- "AREA"
+- "NOMBRE ZONA"
+- "COMUNA"
+- "MODEL"
+- "NUMERO CONEXIONES"
+- "USAGE (kB)"
+- "PORCENTAJE USO"
+
+Tabla tecnicos:
+- id
+- nombre
+- especialidad
+
+Tabla tickets:
+- id
+- tipo_anomalia
+- descripcion
+- estado
+- id_tecnico
+- created_at
+- resuelto_en
+- wifi_point_id
 
 Reglas duras:
-- NO usar columnas inexistentes (prohibido: id_zona, kb_consumidos, ciudad).
-- Para relacionar tablas usa JOIN por nombre_zona o comuna segun el caso.
+- USAR SIEMPRE COMILLAS DOBLES para nombres de columnas con espacios o caracteres especiales (ej: "NOMBRE ZONA").
+- NO usar columnas inexistentes (prohibido: id_zona, kb_consumidos, ciudad, nombre_zona).
+- Para relacionar tablas usa JOIN por "NOMBRE ZONA" o "COMUNA".
 """
 
 
 @tool
 def query_wifi_database(sql: str) -> str:
-    """Ejecuta SQL read-only contra zonas_wifi/conexiones_wifi."""
+    """Ejecuta SQL read-only contra wifi_points/wifi_usage/tecnicos/tickets."""
     rows = run_readonly_query(sql, limit=300)
     return json.dumps(rows, ensure_ascii=False, default=str)
 
@@ -52,9 +68,7 @@ def query_wifi_database(sql: str) -> str:
 @tool
 def predict_anomaly(zone_name: str) -> str:
     """
-    Detecta anomalías comparando usage_kb real vs predicho por un MLP entrenado con
-    comuna y numero_conexiones (80/20 train/test). Si no hay datos o el modelo no
-    puede entrenarse, usa heurística por agregados de zona.
+    Detecta anomalías comparando USAGE (kB) real vs predicho.
     """
     report = run_anomaly_detection_for_zone(zone_name)
     return json.dumps(report, ensure_ascii=False, default=str)

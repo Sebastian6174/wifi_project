@@ -36,6 +36,27 @@ def _last_tool_output(messages: list[Any]) -> str | None:
     return None
 
 
+def _extract_zone_candidate(user_text: str) -> str:
+    # Ignore memory context for extraction
+    clean_text = user_text.split("Memoria corta de la conversacion")[0]
+    lowered = clean_text.lower()
+    
+    if "general" in lowered:
+        return ""
+        
+    for marker in ("zona ", "comuna "):
+        idx = lowered.find(marker)
+        if idx >= 0:
+            tail = clean_text[idx + len(marker) :].strip()
+            candidate = tail.split()[0].strip(",.;:!?()[]{}\"'")
+            if candidate:
+                return candidate
+                
+    # Fallback: if no specific zone, return empty for global analysis
+    return ""
+
+
+
 def build_nodes(
     generate_text: Callable[[str], Any],
 ) -> dict[str, Callable[[AgentState], Any]]:
@@ -111,60 +132,42 @@ def build_nodes(
         tool_output = _last_tool_output(state["messages"])
         if tool_output:
             answer = await generate_text(
-                "Eres el Agente Operativo. Con base en el resultado de tool, entrega diagnostico, "
-                "alerta y orden de trabajo priorizada. No solicites mas tools.\n\n"
+                "Eres el Agente Operativo. Con base en el resultado de tool, entrega respuesta FINAL "
+                "y accionable en ESTE turno.\n"
+                "Reglas estrictas:\n"
+                "- No uses frases de espera o progreso: prohibido 'en curso', 'te notificare', "
+                "'cuando termine', 'tan pronto'.\n"
+                "- No solicites mas tools.\n"
+                "- Si el resultado trae error o sin_datos, explicalo claramente y da acciones concretas.\n"
+                "- Estructura obligatoria (IMPORTANTE PARA EL MAPA):\n"
+                "  1) Diagnostico tecnico\n"
+                "  2) Evidencia (datos clave del tool)\n"
+                "  3) Acciones recomendadas priorizadas\n"
+                "  4) Bloque JSON final en ```json ... ``` (DEBE contener id, name, status, lat, lng). Sin lat/lng el mapa no funcionara.\n\n"
+
                 f"Consulta original:\n{user_text}\n\n"
                 f"Resultado de tool:\n{tool_output}"
             )
             return {"next_agent": "final", "messages": [AIMessage(content=answer)]}
-
-        prompt = f"""
-                    Eres el Agente Operativo.
-                    Objetivo: detectar anomalias, generar alertas automaticas y crear ordenes de trabajo priorizadas.
-                    Aunque estas funciones estan en definicion, puedes usar tools:
-                    - predict_anomaly(zone_name)
-                    - create_work_orders(signal)
-                    - query_wifi_database(sql) para evidencias de soporte
-                    {DB_SCHEMA_PROMPT}
-
-                    Devuelve SOLO JSON:
-                    1) Tool:
-                    {{"action":"tool","tool":"predict_anomaly|create_work_orders|query_wifi_database","input":"..."}}
-                    2) Final:
-                    {{"action":"final","answer":"..."}}
-
-                    Consulta:
-                    {user_text}
-                """
-        raw = await generate_text(prompt)
-        parsed = _safe_json(raw, {"action": "final", "answer": raw})
-        if parsed.get("action") == "tool":
-            tool_name = parsed.get("tool", "predict_anomaly")
-            if tool_name not in {"predict_anomaly", "create_work_orders", "query_wifi_database"}:
-                tool_name = "predict_anomaly"
-            arg_name = (
-                "zone_name"
-                if tool_name == "predict_anomaly"
-                else "sql"
-                if tool_name == "query_wifi_database"
-                else "signal"
-            )
-            return {
-                "active_agent": "operativo",
-                "messages": [
-                    AIMessage(
-                        content=f"Ejecutando {tool_name} para gestion operativa.",
-                        tool_calls=[
-                            {
-                                "id": "call_operativo_tool",
-                                "name": tool_name,
-                                "args": {arg_name: parsed.get("input", "")},
-                            }
-                        ],
-                    )
-                ],
-            }
-        return {"next_agent": "final", "messages": [AIMessage(content=parsed.get("answer", ""))]}
+        zone_candidate = _extract_zone_candidate(user_text)
+        return {
+            "active_agent": "operativo",
+            "messages": [
+                AIMessage(
+                    content=(
+                        "Ejecutando predict_anomaly para obtener evidencia operativa "
+                        "desde BD + modelo ML antes de responder."
+                    ),
+                    tool_calls=[
+                        {
+                            "id": "call_operativo_predict_anomaly",
+                            "name": "predict_anomaly",
+                            "args": {"zone_name": zone_candidate},
+                        }
+                    ],
+                )
+            ],
+        }
 
     async def estrategico_node(state: AgentState) -> dict[str, Any]:
         user_text = _last_user_text(state["messages"])

@@ -41,7 +41,7 @@ async def generate_text(prompt: str) -> str:
 def build_memory_context(conversation_id: str) -> str:
     memory = _SHORT_TERM_MEMORY.get(conversation_id)
     if not memory:
-        return "Sin memoria previa."
+        return "No hay historial de conversacion disponible."
     lines = []
     for turn in memory:
         lines.append(f"Usuario: {turn.get('user', '')}")
