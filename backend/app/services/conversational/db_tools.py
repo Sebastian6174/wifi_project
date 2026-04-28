@@ -46,6 +46,21 @@ def run_sql_readonly(sql: str) -> str:
         )
     rows = [dict(row._mapping) for row in rows]
 
+    if len(rows) == 1 and list(rows[0].keys()) == ["run_sql_readonly"]:
+        inner = rows[0].get("run_sql_readonly")
+        if isinstance(inner, str):
+            try:
+                inner = json.loads(inner)
+            except json.JSONDecodeError:
+                inner = None
+
+        if isinstance(inner, dict):
+            inner.setdefault("tool", "run_sql_readonly")
+            inner.setdefault("sql", statement)
+            if "count" not in inner and isinstance(inner.get("data"), list):
+                inner["count"] = len(inner["data"])
+            return json.dumps(inner, ensure_ascii=True)
+
     result = {
         "tool": "run_sql_readonly",
         "sql": statement,
