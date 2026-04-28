@@ -4,6 +4,8 @@ from fastapi import APIRouter, HTTPException
 
 from app.core.gemini_config import generate_gemini_response
 from app.schemas.agent_schema import AgentInput, AgentPromptRequest, AgentPromptResponse
+from app.services.conversational.schemas import ChatRequest, ChatResponse
+from app.services.conversational.service import run_conversational_chat
 from app.services.workflow.langgraph_workflow import run_multiagent_prompt
 from app.services.workflow.operational_workflow import run_operational_prompt
 
@@ -76,6 +78,15 @@ async def agente_operativo(payload: AgentInput) -> AgentPromptResponse:
 async def agente_conversacional(payload: AgentInput) -> AgentPromptResponse:
     request = AgentPromptRequest(agent_type="conversacional", **payload.model_dump())
     return await _run_agent(request)
+
+
+@router.post("/conversacional/dedicado", response_model=ChatResponse)
+async def agente_conversacional_dedicado(payload: ChatRequest) -> ChatResponse:
+    try:
+        return run_conversational_chat(payload)
+    except Exception as exc:
+        logger.exception("Error procesando conversacional dedicado")
+        raise HTTPException(status_code=500, detail=f"Error interno de IA: {exc}") from exc
 
 
 @router.post("/estrategico", response_model=AgentPromptResponse)

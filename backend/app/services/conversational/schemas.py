@@ -19,8 +19,14 @@ class ChatResponse(BaseModel):
     model: str
     thread_id: str
     sql: Optional[str] = None
-    data: Optional[list[dict[str, Any]]] = None
     row_count: Optional[int] = None
     show_table: Optional[bool] = None
     table_title: Optional[str] = None
+    show_chart: Optional[bool] = None
+    chart_title: Optional[str] = None
+    chart_x_key: Optional[str] = None
+    chart_y_key: Optional[str] = None
+    table_data: Optional[dict[str, Any]] = None
+    chart_data: Optional[list[dict[str, Any]]] = None
+    chart_config: Optional[dict[str, Any]] = None
 

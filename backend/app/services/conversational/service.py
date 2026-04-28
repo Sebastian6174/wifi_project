@@ -7,9 +7,9 @@ from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import InMemorySaver
 from openai import BadRequestError
 
-from conversational.db_tools import run_sql_readonly
-from conversational.prompts import APPLICATION_CONTEXT
-from conversational.schemas import ChatRequest, ChatResponse
+from app.services.conversational.db_tools import run_sql_readonly
+from app.services.conversational.prompts import APPLICATION_CONTEXT
+from app.services.conversational.schemas import ChatRequest, ChatResponse
 
 load_dotenv()
 
@@ -58,6 +58,10 @@ def run_conversational_chat(payload: ChatRequest) -> ChatResponse:
     answer = None
     show_table = None
     table_title = None
+    show_chart = None
+    chart_title = None
+    chart_x_key = None
+    chart_y_key = None
     for message in reversed(messages):
         if isinstance(message, AIMessage):
             answer = message.content
@@ -80,10 +84,15 @@ def run_conversational_chat(payload: ChatRequest) -> ChatResponse:
             answer = "Sin respuesta."
         show_table = parsed.get("show_table")
         table_title = parsed.get("table_title")
+        show_chart = parsed.get("show_chart")
+        chart_title = parsed.get("chart_title")
+        chart_x_key = parsed.get("chart_x_key")
+        chart_y_key = parsed.get("chart_y_key")
 
     sql = None
     data = None
     row_count = None
+    tool_error = None
     for message in reversed(messages):
         if isinstance(message, ToolMessage):
             try:
@@ -95,6 +104,7 @@ def run_conversational_chat(payload: ChatRequest) -> ChatResponse:
                 continue
 
             if payload.get("error"):
+                tool_error = payload.get("error")
                 break
 
             sql = payload.get("sql")
@@ -102,13 +112,49 @@ def run_conversational_chat(payload: ChatRequest) -> ChatResponse:
             row_count = payload.get("count")
             break
 
+    table_data = None
+    chart_data = None
+    chart_config = None
+
+    if tool_error and (answer is None or answer.strip() == ""):
+        answer = f"Error al ejecutar SQL: {tool_error}"
+
+    if show_table is True and isinstance(data, list) and data:
+        headers = list(data[0].keys())
+        rows = [[str(row.get(h, "")) for h in headers] for row in data]
+        truncated = False
+        if len(rows) > 10:
+            rows = rows[:10]
+            truncated = True
+        table_data = {"headers": headers, "rows": rows}
+        if table_title is None or str(table_title).strip() == "":
+            table_title = "Resultados"
+        if truncated and answer:
+            answer = f"{answer}\n\nNota: Se muestran solo las primeras 10 filas."
+
+    if show_chart is True and chart_x_key and chart_y_key and isinstance(data, list) and data:
+        chart_data = data[:10]
+        if chart_title is None or str(chart_title).strip() == "":
+            chart_title = "Grafico"
+        chart_config = {
+            "x_key": chart_x_key,
+            "y_key": chart_y_key,
+            "title": chart_title,
+        }
+
     return ChatResponse(
         answer=answer,
         model=MODEL,
         thread_id=effective_thread_id,
         sql=sql,
-        data=data,
         row_count=row_count,
         show_table=show_table,
         table_title=table_title,
+        show_chart=show_chart,
+        chart_title=chart_title,
+        chart_x_key=chart_x_key,
+        chart_y_key=chart_y_key,
+        table_data=table_data,
+        chart_data=chart_data,
+        chart_config=chart_config,
     )
