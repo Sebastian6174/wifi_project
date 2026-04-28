@@ -3,7 +3,7 @@ import json
 from langchain_core.tools import tool
 from langgraph.prebuilt import ToolNode
 
-from app.services.db_tools import run_readonly_query
+from app.services.db_tools import run_readonly_query, create_ticket, update_ticket_technician
 
 from app.services.ml_core.wifi_usage_nn import run_anomaly_detection_for_zone
 
@@ -75,18 +75,38 @@ def predict_anomaly(zone_name: str) -> str:
 
 
 @tool
-def create_work_orders(signal: str) -> str:
+def create_unassigned_tickets(anomalies: list[dict]) -> str:
     """
-    Stub para ordenes de trabajo priorizadas.
+    Crea tickets 'open' (sin técnico) para las anomalías detectadas.
+    Espera una lista de objetos con: tipo_anomalia, descripcion, wifi_point_id (opcional).
     """
-    return json.dumps(
-        {
-            "status": "stub",
-            "message": "Tool de ordenes de trabajo aun en definicion.",
-            "input": signal,
-        },
-        ensure_ascii=False,
-    )
+    created_ids = []
+    for anomaly in anomalies:
+        tkt_id = create_ticket(
+            tipo_anomalia=anomaly.get("tipo_anomalia", "Anomalía Genérica"),
+            descripcion=anomaly.get("descripcion", "Detectado por el Agente Operacional"),
+            wifi_point_id=anomaly.get("wifi_point_id")
+        )
+        created_ids.append(tkt_id)
+    
+    return json.dumps({"status": "success", "created_ticket_ids": created_ids}, ensure_ascii=False)
+
+
+@tool
+def create_work_orders(assignments: list[dict]) -> str:
+    """
+    Asigna técnicos a tickets específicos. 
+    Espera una lista de objetos con: ticket_id, tecnico_id.
+    """
+    results = []
+    for assignment in assignments:
+        success = update_ticket_technician(
+            ticket_id=assignment.get("ticket_id"),
+            tecnico_id=assignment.get("tecnico_id")
+        )
+        results.append({"ticket_id": assignment.get("ticket_id"), "success": success})
+    
+    return json.dumps({"status": "completed", "results": results}, ensure_ascii=False)
 
 
 @tool
@@ -104,5 +124,12 @@ def geospatial_cross_analysis(question: str) -> str:
     )
 
 
-TOOLS = [query_wifi_database, predict_anomaly, create_work_orders, geospatial_cross_analysis]
+
+TOOLS = [
+    query_wifi_database, 
+    predict_anomaly, 
+    create_unassigned_tickets, 
+    create_work_orders, 
+    geospatial_cross_analysis
+]
 tools_node = ToolNode(TOOLS)

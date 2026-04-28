@@ -94,11 +94,30 @@ export default function ManageOperationalAgent() {
               <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl blur opacity-10 group-hover:opacity-20 transition duration-1000"></div>
               <div className="relative p-6 rounded-2xl bg-white border border-indigo-50 shadow-xl shadow-indigo-100/20">
                 <div className="prose prose-sm max-w-none text-slate-700 leading-relaxed font-medium">
-                  {agentResponse.split('\n').map((line, i) => (
-                    <p key={i} className={line.startsWith('-') ? 'ml-4 mb-2 list-item' : 'mb-4'}>
-                      {line.replace(/^- /, '')}
-                    </p>
-                  ))}
+                  {agentResponse.split('\n').map((line, i) => {
+                    if (!line.trim()) return <div key={i} className="h-2" />;
+                    
+                    // Handle headers (e.g., 1) Diagnostico tecnico)
+                    if (/^\d+\)/.test(line)) {
+                      return <h4 key={i} className="text-indigo-800 font-bold mt-4 mb-2">{line}</h4>;
+                    }
+
+                    // Handle bold text and list items
+                    const formattedLine = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    
+                    if (line.trim().startsWith('-') || line.trim().startsWith('*')) {
+                      return (
+                        <div key={i} className="flex gap-2 mb-1.5 ml-2">
+                          <span className="text-indigo-400 mt-1.5 shrink-0 size-1.5 rounded-full bg-indigo-400" />
+                          <p className="flex-1 m-0" dangerouslySetInnerHTML={{ __html: formattedLine.replace(/^[-*]\s*/, '') }} />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <p key={i} className="mb-3" dangerouslySetInnerHTML={{ __html: formattedLine }} />
+                    );
+                  })}
                 </div>
                 
                 <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between">

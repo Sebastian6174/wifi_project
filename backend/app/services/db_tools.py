@@ -156,3 +156,31 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
     with engine.connect() as conn:
         rows = conn.execute(wrapped_sql, {"limit": limit})
         return [dict(row._mapping) for row in rows]
+
+
+def create_ticket(tipo_anomalia: str, descripcion: str, wifi_point_id: int | None = None) -> int:
+    """Crea un nuevo ticket unassigned."""
+    sql = text(
+        """
+        INSERT INTO tickets (tipo_anomalia, descripcion, estado, wifi_point_id)
+        VALUES (:tipo, :desc, 'open', :ap_id)
+        RETURNING id
+        """
+    )
+    with engine.begin() as conn:
+        result = conn.execute(sql, {"tipo": tipo_anomalia, "desc": descripcion, "ap_id": wifi_point_id})
+        return result.scalar_one()
+
+
+def update_ticket_technician(ticket_id: int, tecnico_id: int) -> bool:
+    """Asigna un tecnico a un ticket y cambia el estado a 'assigned'."""
+    sql = text(
+        """
+        UPDATE tickets
+        SET id_tecnico = :t_id, estado = 'assigned'
+        WHERE id = :tkt_id
+        """
+    )
+    with engine.begin() as conn:
+        result = conn.execute(sql, {"t_id": tecnico_id, "tkt_id": ticket_id})
+        return result.rowcount > 0

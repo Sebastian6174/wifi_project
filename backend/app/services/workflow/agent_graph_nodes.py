@@ -126,48 +126,96 @@ def build_nodes(
                 ],
             }
         return {"next_agent": "final", "messages": [AIMessage(content=parsed.get("answer", ""))]}
-
-    async def operativo_node(state: AgentState) -> dict[str, Any]:
+    async def operativo_node(state: AgentState) -> dict[str, Any]:
         user_text = _last_user_text(state["messages"])
-        tool_output = _last_tool_output(state["messages"])
-        if tool_output:
-            answer = await generate_text(
-                "Eres el Agente Operativo. Con base en el resultado de tool, entrega respuesta FINAL "
-                "y accionable en ESTE turno.\n"
-                "Reglas estrictas:\n"
-                "- No uses frases de espera o progreso: prohibido 'en curso', 'te notificare', "
-                "'cuando termine', 'tan pronto'.\n"
-                "- No solicites mas tools.\n"
-                "- Si el resultado trae error o sin_datos, explicalo claramente y da acciones concretas.\n"
-                "- Estructura obligatoria (IMPORTANTE PARA EL MAPA):\n"
-                "  1) Diagnostico tecnico\n"
-                "  2) Evidencia (datos clave del tool)\n"
-                "  3) Acciones recomendadas priorizadas\n"
-                "  4) Bloque JSON final en ```json ... ``` (DEBE contener id, name, status, lat, lng). Sin lat/lng el mapa no funcionara.\n\n"
+        last_msg = state["messages"][-1]
+        
+        # Si venimos de una tool, evaluamos qué paso sigue
+        if isinstance(last_msg, ToolMessage):
+            tool_name = last_msg.name
+            tool_output = last_msg.content
+            
+            prompt = f"""
+                Eres el Agente Operativo. Acabas de ejecutar la tool '{tool_name}'.
+                Resultado: {tool_output}
+                
+                Tu objetivo es completar este FLUJO OBLIGATORIO para gestionar anomalías:
+                
+                PASO 1: Detectar anomalías (ya ejecutado si vienes de predict_anomaly).
+                PASO 2: Crear tickets unassigned. Usa 'create_unassigned_tickets' con los datos de las anomalías. 
+                        Argumento: {{"anomalies": [ {{"tipo_anomalia": "...", "descripcion": "...", "wifi_point_id": ...}}, ... ]}}
+                        IMPORTANTE: Usa el 'id' del punto wifi obtenido de la evidencia como 'wifi_point_id'.
+                PASO 3: Obtener técnicos. Usa 'query_wifi_database' para listar técnicos disponibles (SELECT * FROM tecnicos).
+                PASO 4: Asignar tickets. Usa 'create_work_orders' pasando los 'ticket_id' y 'tecnico_id'.
+                        Argumento: {{"assignments": [ {{"ticket_id": ..., "tecnico_id": ...}}, ... ]}}
+                PASO 5: Respuesta final. Solo cuando todo esté asignado en la DB, genera el diagnóstico para el usuario.
+                
+                Esquema DB: {DB_SCHEMA_PROMPT}
+                
+                REGLA DE ORO: No te saltes pasos. Si acabas de crear tickets, el siguiente paso es buscar técnicos y luego asignar.
+                
+                Devuelve SOLO JSON:
+                {{"action":"tool","tool":"...","args":{{...}}}}
+                o
+                {{"action":"final","answer":"..."}}
+                
+                Consulta original: {user_text}
+            """
+            raw = await generate_text(prompt)
+            parsed = _safe_json(raw, {"action": "final", "answer": raw})
+            
+            if parsed.get("action") == "tool":
+                t_name = parsed.get("tool")
+                t_args = parsed.get("args", {})
+                
+                # Asegurar que args sea un diccionario para tool_calls
+                if not isinstance(t_args, dict):
+                    t_args = { "input": t_args }
 
-                f"Consulta original:\n{user_text}\n\n"
-                f"Resultado de tool:\n{tool_output}"
+                return {
+                    "active_agent": "operativo",
+                    "messages": [
+                        AIMessage(
+                            content=f"Continuando flujo operativo con {t_name}.",
+                            tool_calls=[{
+                                "id": f"call_op_{t_name}_{len(state['messages'])}",
+                                "name": t_name,
+                                "args": t_args,
+                            }],
+                        )
+                    ],
+                }
+            
+            # Si es final, formatear según las reglas de visualización del mapa
+            final_context = [str(m.content) for m in state["messages"][-6:]]
+            final_answer = await generate_text(
+                f"Genera la respuesta final basada en este flujo operativo. \n"
+                "Reglas de estructura:\n"
+                "1) Diagnostico tecnico\n"
+                "2) Evidencia (datos clave del tool)\n"
+                "3) Acciones recomendadas priorizadas\n"
+                "4) Bloque JSON final en ```json ... ``` (id, name, status, lat, lng)\n"
+                "IMPORTANTE: El JSON debe incluir TODAS las anomalías detectadas para que aparezcan en el mapa.\n\n"
+                f"Contexto: {final_context}"
             )
-            return {"next_agent": "final", "messages": [AIMessage(content=answer)]}
+            return {"next_agent": "final", "messages": [AIMessage(content=final_answer)]}
+
+        # Inicio del flujo
         zone_candidate = _extract_zone_candidate(user_text)
         return {
             "active_agent": "operativo",
             "messages": [
                 AIMessage(
-                    content=(
-                        "Ejecutando predict_anomaly para obtener evidencia operativa "
-                        "desde BD + modelo ML antes de responder."
-                    ),
-                    tool_calls=[
-                        {
-                            "id": "call_operativo_predict_anomaly",
-                            "name": "predict_anomaly",
-                            "args": {"zone_name": zone_candidate},
-                        }
-                    ],
+                    content="Iniciando diagnóstico operativo y detección de anomalías.",
+                    tool_calls=[{
+                        "id": "call_op_predict_anomaly",
+                        "name": "predict_anomaly",
+                        "args": {"zone_name": zone_candidate},
+                    }],
                 )
             ],
         }
+
 
     async def estrategico_node(state: AgentState) -> dict[str, Any]:
         user_text = _last_user_text(state["messages"])
