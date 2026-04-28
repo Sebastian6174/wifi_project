@@ -8,3 +8,5 @@ psycopg2
 sqlalchemy
 langgraph
 langchain-core
+scikit-learn
+joblib
