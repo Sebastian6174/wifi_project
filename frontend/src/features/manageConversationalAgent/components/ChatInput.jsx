@@ -84,7 +84,7 @@ export default function ChatInput({
   const handleSuggestionClick = (suggestion) => {
     if (!suggestion) return;
     if (onSelectSuggestion) {
-      onSelectSuggestion(suggestion);
+      onSelectSuggestion(suggestion, mode.id, selectedContext);
       return;
     }
     onSendMessage(suggestion, mode.id, selectedContext);

@@ -37,12 +37,12 @@ export default function ManageConversationalAgent({ isLanding = false }) {
     }
   }, [messages]);
 
-  const handleSendMessage = (text) => {
-    sendMessage(text);
+  const handleSendMessage = (text, modeId) => {
+    sendMessage(text, { modeId });
   };
 
-  const handleSelectSuggestion = (text) => {
-    handleSendMessage(text, "auto", []);
+  const handleSelectSuggestion = (text, modeId) => {
+    handleSendMessage(text, modeId);
   };
 
   return (

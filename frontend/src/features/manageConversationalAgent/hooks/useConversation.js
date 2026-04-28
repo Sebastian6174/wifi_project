@@ -14,7 +14,14 @@ export default function useConversation() {
   const [error, setError] = useState(null);
   const [threadId, setThreadId] = useState(() => crypto.randomUUID());
 
-  const sendMessage = async (question) => {
+  const sendMessage = async (question, options = {}) => {
+    const { modeId = "auto" } = options;
+    const hint =
+      modeId === "chart"
+        ? "\n\n[Preferencia del usuario: si es posible, responde con grafica y datos agregados para barras.]"
+        : modeId === "table"
+          ? "\n\n[Preferencia del usuario: si es posible, responde con tabla.]"
+          : "";
     const userMsg = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -26,7 +33,7 @@ export default function useConversation() {
     setError(null);
 
     try {
-      const response = await sendQuery({ message: question, threadId });
+      const response = await sendQuery({ message: `${question}${hint}`, threadId });
       if (response?.thread_id) {
         setThreadId(response.thread_id);
       }

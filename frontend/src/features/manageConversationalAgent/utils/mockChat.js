@@ -3,7 +3,9 @@ export const SUGGESTED_PROMPTS = [
   "¿Qué zonas concentran más clientes y tráfico?",
   "¿En qué horas aumenta la autenticación o la desconexión?",
   "¿Qué señales permiten anticipar fallas o congestión?",
-  "¿Cómo priorizar mantenimiento o inversión usando estos datos?"
+  "¿Cómo priorizar mantenimiento o inversión usando estos datos?",
+  "Hazme una grafica con la cantidad de puntos de acceso en los estados que pueden tener",
+  "Top 10 AP por uso acumulado de MB"
 ];
 
 export const CONTEXT_PAGES = [
