@@ -1,6 +1,20 @@
-import { ACTION_TABLE_DATA } from "../utils/mockStrategicData";
+import { useStrategicData } from "../hooks/useStrategicData";
+import { Loader2 } from "lucide-react";
 
 export default function StrategicActionTable() {
+  const { actionTable: ACTION_TABLE_DATA, loading, error } = useStrategicData();
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-3xl p-10 flex flex-col items-center justify-center border border-slate-200 shadow-sm mb-6">
+        <Loader2 className="size-6 text-[#004851] animate-spin mb-2" />
+        <p className="text-xs font-bold text-slate-500">Cargando acciones...</p>
+      </div>
+    );
+  }
+
+  if (error) return null; // Silence error or show something minor
+
   return (
     <section className="bg-white rounded-3xl overflow-hidden mb-6 border border-slate-200 shadow-sm flex flex-col">
       <div className="p-4 lg:p-5 border-b border-slate-100 flex justify-between items-center">
