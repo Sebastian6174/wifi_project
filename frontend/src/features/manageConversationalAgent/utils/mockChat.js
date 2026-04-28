@@ -1,8 +1,9 @@
 export const SUGGESTED_PROMPTS = [
-  "¿Cuál es el tráfico en la Comuna 13?",
-  "Nodos fuera de línea en el oriente",
-  "Estado de fibra en Comuna 1",
-  "Resumen de alertas críticas hoy"
+  "¿Qué AP presentan más inestabilidad o desconexiones?",
+  "¿Qué zonas concentran más clientes y tráfico?",
+  "¿En qué horas aumenta la autenticación o la desconexión?",
+  "¿Qué señales permiten anticipar fallas o congestión?",
+  "¿Cómo priorizar mantenimiento o inversión usando estos datos?"
 ];
 
 export const CONTEXT_PAGES = [

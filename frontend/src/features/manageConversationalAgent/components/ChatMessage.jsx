@@ -1,4 +1,6 @@
 import ChatChart from "./ChatChart";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChatMessage({ message }) {
   const isAI = message.role === "assistant";
@@ -81,6 +83,12 @@ export default function ChatMessage({ message }) {
                 className="size-2 rounded-full bg-[var(--md-primary-container)] animate-bounce"
                 style={{ animationDelay: "240ms" }}
               />
+            </div>
+          ) : isAI ? (
+            <div className="space-y-2 break-words">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.text || ""}
+              </ReactMarkdown>
             </div>
           ) : (
             message.text
