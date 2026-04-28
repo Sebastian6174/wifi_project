@@ -2,6 +2,7 @@ import ChatChart from "./ChatChart";
 
 export default function ChatMessage({ message }) {
   const isAI = message.role === "assistant";
+  const isTyping = Boolean(message.isTyping);
   const table = (() => {
     const raw = message.tableData;
     if (!raw) return null;
@@ -69,14 +70,29 @@ export default function ChatMessage({ message }) {
               : "bg-[var(--md-primary-container)] text-white rounded-2xl rounded-tr-none"
           }`}
         >
-          {message.text}
+          {isTyping ? (
+            <div className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-[var(--md-primary-container)] animate-bounce" />
+              <span
+                className="size-2 rounded-full bg-[var(--md-primary-container)] animate-bounce"
+                style={{ animationDelay: "120ms" }}
+              />
+              <span
+                className="size-2 rounded-full bg-[var(--md-primary-container)] animate-bounce"
+                style={{ animationDelay: "240ms" }}
+              />
+            </div>
+          ) : (
+            message.text
+          )}
 
           {/* Conditional Rendering for AI Content */}
-          {message.chartData && message.chartConfig && (
+          {!isTyping && message.chartData && message.chartConfig && (
             <ChatChart data={message.chartData} config={message.chartConfig} />
           )}
 
-          {table &&
+          {!isTyping &&
+            table &&
             (() => {
               const downloadCSV = () => {
                 const { headers, rows } = table;

@@ -15,6 +15,17 @@ const INITIAL_MESSAGE = {
 export default function ManageConversationalAgent({ isLanding = false }) {
   const { messages, isLoading, error, sendMessage } = useConversation();
   const allMessages = messages.length ? messages : [INITIAL_MESSAGE];
+  const displayMessages = isLoading
+    ? [
+        ...allMessages,
+        {
+          id: "typing",
+          role: "assistant",
+          isTyping: true,
+          timestamp: new Date().toISOString(),
+        },
+      ]
+    : allMessages;
   const scrollRef = useRef(null);
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
@@ -62,7 +73,7 @@ export default function ManageConversationalAgent({ isLanding = false }) {
               : "gap-8 px-2 lg:px-8 pt-10 pb-16"
           }`}
         >
-          {allMessages.map((msg) => (
+          {displayMessages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} />
           ))}
           <div ref={scrollRef} className="h-1 shrink-0" />
