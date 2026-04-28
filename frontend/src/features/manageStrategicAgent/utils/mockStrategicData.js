@@ -1,4 +1,4 @@
-// Access Points across Cali — each node has:
+/* // Access Points across Cali — each node has:
 //   connectedDevices: current load vs capacity → used for WiFi Density (congestion) layer
 //   apCount: nearby overlapping AP signals → used for Infrastructure (AP density) layer
 //   severity: derived alert level
@@ -102,3 +102,4 @@ export const TRAFFIC_CHART_DATA = [
   { time: "16:00", traffic: 75, mobile: 68 },
   { time: "20:00", traffic: 98, mobile: 89 }, // Peak
 ];
+ */

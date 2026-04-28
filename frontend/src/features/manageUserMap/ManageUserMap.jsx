@@ -9,6 +9,7 @@ export default function ManageUserMap() {
     selectedAP,
     routeCoords,
     isLoadingRoute,
+    loading,
     error,
     handleSelectAP,
   } = useUserMap();
@@ -34,13 +35,20 @@ export default function ManageUserMap() {
       </div>
 
       {/* Map */}
-      <UserMap
-        userPos={userPos}
-        points={points}
-        selectedAP={selectedAP}
-        onSelectAP={handleSelectAP}
-        routeCoords={routeCoords}
-      />
+      {loading ? (
+        <div className="w-full h-[500px] rounded-2xl bg-slate-50 flex flex-col items-center justify-center border border-slate-200/60">
+           <span className="material-symbols-outlined animate-spin text-[#004851] text-[32px]">sync</span>
+           <p className="text-xs font-bold text-slate-500 mt-2">Localizando puntos WiFi...</p>
+        </div>
+      ) : (
+        <UserMap
+          userPos={userPos}
+          points={points}
+          selectedAP={selectedAP}
+          onSelectAP={handleSelectAP}
+          routeCoords={routeCoords}
+        />
+      )}
 
       {/* Error state */}
       {error && (

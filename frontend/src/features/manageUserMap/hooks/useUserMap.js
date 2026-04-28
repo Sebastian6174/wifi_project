@@ -1,44 +1,58 @@
 import { useState, useEffect } from "react";
 import { findNearestAP } from "../utils/geoUtils";
-import { ACCESS_POINTS } from "../../manageStrategicAgent/utils/mockStrategicData";
-
-// Extract all points from mock data
-const allAPs = ACCESS_POINTS;
+import { accessPointsService } from "../../manageStrategicAgent/services/accessPointsService";
 
 export default function useUserMap() {
   const [userPos, setUserPos] = useState(null);
-  const [points, setPoints]   = useState(allAPs);
+  const [points, setPoints]   = useState([]);
   const [selectedAP, setSelectedAP] = useState(null);
   const [routeCoords, setRouteCoords] = useState([]);
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // 1. Get user location on mount
+  // 1. Fetch APs and Get user location on mount
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setError("Tu navegador no soporta geolocalización");
-      return;
+    async function init() {
+      try {
+        setLoading(true);
+        const allAPs = await accessPointsService.getAccessPoints();
+        setPoints(allAPs);
+
+        if (!navigator.geolocation) {
+          setError("Tu navegador no soporta geolocalización");
+          setLoading(false);
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const coords = {
+              lng: pos.coords.longitude,
+              lat: pos.coords.latitude,
+              name: "Tu Ubicación",
+            };
+            setUserPos(coords);
+
+            // Auto-select the nearest AP
+            const nearest = findNearestAP(coords.lat, coords.lng, allAPs);
+            if (nearest) {
+              setSelectedAP(nearest);
+            }
+            setLoading(false);
+          },
+          () => {
+            setError("Permiso de ubicación denegado. No podemos mostrar puntos cercanos.");
+            setLoading(false);
+          }
+        );
+      } catch (err) {
+        setError("Error al conectar con la base de datos");
+        setLoading(false);
+      }
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const coords = {
-          lng: pos.coords.longitude,
-          lat: pos.coords.latitude,
-          name: "Tu Ubicación",
-        };
-        setUserPos(coords);
-
-        // Auto-select the nearest AP
-        const nearest = findNearestAP(coords.lat, coords.lng, allAPs);
-        if (nearest) {
-          setSelectedAP(nearest);
-        }
-      },
-      () => {
-        setError("Permiso de ubicación denegado. No podemos mostrar puntos cercanos.");
-      }
-    );
+    init();
   }, []);
 
   // 2. Fetch OSRM route when userPos and selectedAP change

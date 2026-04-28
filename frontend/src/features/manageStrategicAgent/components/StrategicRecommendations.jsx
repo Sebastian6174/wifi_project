@@ -1,8 +1,24 @@
 import { useNavigate } from "react-router-dom";
-import { AI_RECOMMENDATIONS } from "../utils/mockStrategicData";
+import { useStrategicData } from "../hooks/useStrategicData";
+import { Loader2 } from "lucide-react";
 
 export default function StrategicRecommendations() {
   const navigate = useNavigate();
+  const { recommendations: AI_RECOMMENDATIONS, loading, error } = useStrategicData();
+
+  if (loading) {
+    return (
+      <div className="col-span-12 lg:col-span-4 flex flex-col gap-4 h-full">
+        <div className="glass-panel p-5 rounded-3xl flex-1 flex flex-col items-center justify-center shadow-sm border border-slate-200/60 bg-white/60">
+           <Loader2 className="size-6 text-[#004851] animate-spin mb-2" />
+           <p className="text-xs font-bold text-slate-500">Cargando recomendaciones...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) return null;
+
   return (
     <div className="col-span-12 lg:col-span-4 flex flex-col gap-4 h-full">
       <div className="glass-panel p-5 rounded-3xl relative overflow-hidden flex-1 flex flex-col shadow-sm border border-slate-200/60 bg-white/60">
