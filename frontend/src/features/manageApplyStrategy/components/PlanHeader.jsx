@@ -7,7 +7,7 @@ const PRIORITY_OPTIONS = [
   { id: "critical", label: "Crítica",  badge: "bg-[#004851] text-white" },
 ];
 
-export default function PlanHeader({ meta, totalHours, grandTotal, saved, onSave }) {
+export default function PlanHeader({ meta, totalHours, grandTotal, loading, saved, onSave, onReset }) {
   const navigate = useNavigate();
   const priority = PRIORITY_OPTIONS.find((p) => p.id === meta.priority) || PRIORITY_OPTIONS[1];
 
@@ -53,19 +53,27 @@ export default function PlanHeader({ meta, totalHours, grandTotal, saved, onSave
             ${grandTotal.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} USD
           </div>
 
-          {/* Save button */}
+          <button
+            onClick={onReset}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-xs text-[#004851] bg-teal-50 border border-teal-100 hover:bg-teal-100 transition-all active:scale-95"
+          >
+            <span className="material-symbols-outlined text-[15px]">add</span>
+            Nuevo Plan
+          </button>
+
           <button
             onClick={onSave}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 ${
+            disabled={loading || saved}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition-all active:scale-95 disabled:opacity-70 disabled:pointer-events-none ${
               saved
                 ? "bg-emerald-500 text-white"
                 : "bg-[#004851] text-white hover:bg-[#003036] shadow-teal-900/20"
             }`}
           >
-            <span className="material-symbols-outlined text-[15px]">
-              {saved ? "check_circle" : "save"}
+            <span className={`material-symbols-outlined text-[15px] ${loading ? "animate-spin" : ""}`}>
+              {loading ? "sync" : saved ? "check_circle" : "save"}
             </span>
-            {saved ? "Guardado" : "Guardar Plan"}
+            {loading ? "Guardando..." : saved ? "Guardado" : "Guardar Plan"}
           </button>
         </div>
       </div>

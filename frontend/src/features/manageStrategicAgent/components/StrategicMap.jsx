@@ -8,8 +8,8 @@ import {
   MapPopup,
   MapControls,
 } from "@/components/ui/map";
-import { ACCESS_POINTS } from "../utils/mockStrategicData";
-import { RadioTower } from "lucide-react";
+import { useAccessPoints } from "../hooks/useAccessPoints";
+import { RadioTower, Loader2 } from "lucide-react";
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 // WiFi Density: congestion ratio 0–1 → teal(low) → amber → rose(critical)
@@ -39,19 +39,35 @@ function buildInfraGeoJSON(points) {
   };
 }
 
-// Sparse / no-coverage zones — shown as individual muted markers in infra layer
-const SPARSE_ZONES = ACCESS_POINTS.filter((p) => p.apCount <= 1);
-
 export default function StrategicMap() {
+  const { accessPoints: ACCESS_POINTS, loading, error } = useAccessPoints();
   const [wifiDensity, setWifiDensity] = useState(false);
   const [infraDensity, setInfraDensity] = useState(false);
   const [selected, setSelected] = useState(null);
 
-  const infraGeoJSON = useMemo(() => buildInfraGeoJSON(ACCESS_POINTS), []);
+  const infraGeoJSON = useMemo(() => buildInfraGeoJSON(ACCESS_POINTS), [ACCESS_POINTS]);
+  const SPARSE_ZONES = useMemo(() => ACCESS_POINTS.filter((p) => p.apCount <= 1), [ACCESS_POINTS]);
 
   const legendLabel = infraDensity
     ? { lo: "Sin AP", hi: "Solapamiento" }
     : { lo: "Baja carga", hi: "Saturación" };
+
+  if (loading) {
+    return (
+      <div className="col-span-12 lg:col-span-8 h-[480px] flex flex-col items-center justify-center bg-slate-50/50 rounded-3xl border border-white">
+        <Loader2 className="size-8 text-[#004851] animate-spin mb-2" />
+        <p className="text-sm font-bold text-slate-500">Cargando datos de red...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="col-span-12 lg:col-span-8 h-[480px] flex flex-col items-center justify-center bg-rose-50/50 rounded-3xl border border-rose-100">
+        <p className="text-sm font-bold text-rose-500">Error al cargar datos: {error.message}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="col-span-12 lg:col-span-8 h-[480px] relative rounded-3xl overflow-hidden shadow-xl shadow-teal-900/10 border border-white">

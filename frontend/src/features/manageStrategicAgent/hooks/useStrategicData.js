@@ -1,35 +1,39 @@
-/**
- * useStrategicData.js  (manageStrategicAgent/hooks)
- * Fetches KPIs, recommendations and geodata for the Strategic Agent.
- */
+import { useState, useEffect } from "react";
+import { accessPointsService } from "../services/accessPointsService";
 
-import { useState } from 'react';
-import { getKPIs, getRecommendations, getGeoData } from '../services/strategicService';
+export function useStrategicData() {
+  const [data, setData] = useState({
+    accessPoints: [],
+    recommendations: [],
+    actionTable: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-export default function useStrategicData() {
-  const [kpis,            setKpis]            = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [geoData,         setGeoData]         = useState(null);
-  const [isLoading,       setIsLoading]       = useState(false);
-  const [error,           setError]           = useState(null);
-
-  const fetchAll = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [kpisData, recsData, geoDataRes] = await Promise.all([
-        getKPIs(), getRecommendations(), getGeoData(),
-      ]);
-      setKpis(kpisData);
-      setRecommendations(recsData);
-      setGeoData(geoDataRes);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+        const [accessPoints, recommendations, actionTable] = await Promise.all([
+          accessPointsService.getAccessPoints(),
+          accessPointsService.getRecommendations(),
+          accessPointsService.getActionTableData(),
+        ]);
+        
+        setData({
+          accessPoints,
+          recommendations,
+          actionTable,
+        });
+      } catch (err) {
+        setError(err);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
 
+    fetchData();
+  }, []);
 
-  return { kpis, recommendations, geoData, isLoading, error, refetch: fetchAll };
+  return { ...data, loading, error };
 }

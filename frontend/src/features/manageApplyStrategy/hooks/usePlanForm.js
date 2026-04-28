@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { DEFAULT_STEPS } from "../utils/mockPlanData";
+import { strategyService } from "../services/strategyService";
 
 const DEFAULT_META = {
   title: "",
@@ -21,7 +22,9 @@ export default function usePlanForm() {
   const [meta, setMeta] = useState(DEFAULT_META);
   const [steps, setSteps] = useState(DEFAULT_STEPS);
   const [budgetItems, setBudgetItems] = useState([DEFAULT_BUDGET_ITEM()]);
+  const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
 
   // ── Meta ──────────────────────────────────────────────────────────────────
   const updateMeta = useCallback((field, value) => {
@@ -96,11 +99,38 @@ export default function usePlanForm() {
 
   const totalHours = steps.reduce((a, s) => a + Number(s.hours || 0), 0);
 
-  // ── Save (local) ──────────────────────────────────────────────────────────
-  const handleSave = useCallback(() => {
-    // In a real app this would call an API service
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+  // ── Save (Supabase) ───────────────────────────────────────────────────────
+  const handleSave = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await strategyService.savePlan({
+        meta,
+        steps,
+        budgetItems,
+        subtotal,
+        contingency,
+        grandTotal,
+        totalHours,
+      });
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (err) {
+      console.error("Failed to save plan:", err);
+      setError("Error al guardar el plan estratégico");
+    } finally {
+      setLoading(false);
+    }
+  }, [meta, steps, budgetItems, subtotal, contingency, grandTotal, totalHours]);
+
+  const resetForm = useCallback(() => {
+    setMeta(DEFAULT_META);
+    setSteps(DEFAULT_STEPS);
+    setBudgetItems([DEFAULT_BUDGET_ITEM()]);
+    setSaved(false);
+    setError(null);
   }, []);
 
   return {
@@ -108,6 +138,6 @@ export default function usePlanForm() {
     steps, updateStep, addStep, removeStep, moveStep,
     budgetItems, updateBudgetItem, addBudgetItem, removeBudgetItem,
     subtotal, contingency, grandTotal, totalHours,
-    saved, handleSave,
+    loading, error, saved, handleSave, resetForm,
   };
 }

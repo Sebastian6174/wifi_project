@@ -12,7 +12,7 @@ export default function ManageApplyStrategy() {
     steps, updateStep, addStep, removeStep, moveStep,
     budgetItems, updateBudgetItem, addBudgetItem, removeBudgetItem,
     subtotal, contingency, grandTotal, totalHours,
-    saved, handleSave,
+    loading, error, saved, handleSave, resetForm,
   } = usePlanForm();
 
   // When AI suggests a step, add it as a note to a new step
@@ -37,9 +37,18 @@ export default function ManageApplyStrategy() {
           meta={meta}
           totalHours={totalHours}
           grandTotal={grandTotal}
+          loading={loading}
           saved={saved}
           onSave={handleSave}
+          onReset={resetForm}
         />
+
+        {error && (
+          <div className="mb-4 p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-2 text-rose-600 text-xs font-bold animate-in fade-in slide-in-from-top-1">
+            <span className="material-symbols-outlined text-[16px]">error</span>
+            {error}
+          </div>
+        )}
 
         {/* Main Grid: 8 col content + 4 col sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
