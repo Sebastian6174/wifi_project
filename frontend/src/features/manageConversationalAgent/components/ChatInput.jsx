@@ -12,7 +12,7 @@ export default function ChatInput({
   const [modeOpen, setModeOpen] = useState(false);
   const [selectedContext, setSelectedContext] = useState([]);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const textareaRef = useRef(null);
   const containerRef = useRef(null);
