@@ -11,7 +11,7 @@ from openai import BadRequestError
 
 from app.core.llm_config import get_model_config
 
-from app.services.conversational.db_tools import run_sql_readonly
+from app.services.conversational.db_tools import lookup_data_dictionary, run_sql_readonly
 from app.services.conversational.prompts import APPLICATION_CONTEXT
 from app.services.conversational.schemas import ChatRequest, ChatResponse
 
@@ -44,7 +44,7 @@ def _build_chat_model():
 checkpointer = InMemorySaver()
 agent = create_agent(
     model=_build_chat_model(),
-    tools=[run_sql_readonly],
+    tools=[run_sql_readonly, lookup_data_dictionary],
     system_prompt=APPLICATION_CONTEXT,
     checkpointer=checkpointer,
 )

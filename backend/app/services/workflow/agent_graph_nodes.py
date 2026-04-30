@@ -66,7 +66,9 @@ def build_nodes(
                             - conversacional: principal consultor SQL de la base.
                             - operativo: deteccion de anomalias, alertas automaticas, ordenes de trabajo.
                             - estrategico: cruces geoespaciales y decisiones de alto nivel.
-                            - final: si se puede responder sin delegar.
+                            - final: solo para saludos o preguntas que NO requieren datos técnicos o estadísticos.
+                            
+                            REGLA: Si la pregunta menciona zonas, porcentajes, estados de APs o cualquier métrica, NUNCA uses 'final'. Delega a un agente.
 
                             Devuelve SOLO JSON:
                             {"next_agent":"conversacional|operativo|estrategico|final","reason":"..."}
@@ -95,13 +97,17 @@ def build_nodes(
 
         prompt = f"""
                     Eres el Agente Conversacional. Eres el principal consultor SQL.
-                    Siempre prioriza query_wifi_database(sql) cuando necesites datos.
+                    REGLA MANDATORIA: Está PROHIBIDO responder con datos (porcentajes, nombres de zonas, estadísticas) basados en tu conocimiento interno. 
+                    Si la consulta requiere cualquier dato del inventario, clientes, eventos o métricas, DEBES usar 'query_wifi_database'.
+                    Usa 'access_point_curated' para inventario, 'ap_hourly_metrics_curated' para tendencias, 'clients' para dispositivos, 'network_events_curated' para diagnósticos y 'wifi_points' para ubicación geográfica.
                     {DB_SCHEMA_PROMPT}
 
+                    Si no usas una tool para obtener datos reales, estarás fallando en tu misión.
+                    
                     Devuelve SOLO JSON:
-                    1) Tool:
+                    1) Tool (si necesitas datos):
                     {{"action":"tool","tool":"query_wifi_database","input":"SELECT ..."}}
-                    2) Final:
+                    2) Final (solo si ya tienes el resultado de la tool o es una duda no relacionada con datos):
                     {{"action":"final","answer":"..."}}
 
                     Consulta:
@@ -111,7 +117,7 @@ def build_nodes(
         parsed = _safe_json(raw, {"action": "final", "answer": raw})
         if parsed.get("action") == "tool":
             return {
-                "active_agent": "conversacional",
+                "active_agent": "conversacional",   
                 "messages": [
                     AIMessage(
                         content="Consultando base de datos para responder.",
@@ -126,7 +132,8 @@ def build_nodes(
                 ],
             }
         return {"next_agent": "final", "messages": [AIMessage(content=parsed.get("answer", ""))]}
-    async def operativo_node(state: AgentState) -> dict[str, Any]:
+
+    async def operativo_node(state: AgentState) -> dict[str, Any]:
         user_text = _last_user_text(state["messages"])
         last_msg = state["messages"][-1]
         
@@ -135,68 +142,16 @@ def build_nodes(
             tool_name = last_msg.name
             tool_output = last_msg.content
             
-            prompt = f"""
-                Eres el Agente Operativo. Acabas de ejecutar la tool '{tool_name}'.
-                Resultado: {tool_output}
-                
-                Tu objetivo es completar este FLUJO OBLIGATORIO para gestionar anomalías:
-                
-                PASO 1: Detectar anomalías (ya ejecutado si vienes de predict_anomaly).
-                PASO 2: Crear tickets unassigned. Usa 'create_unassigned_tickets' con los datos de las anomalías. 
-                        Argumento: {{"anomalies": [ {{"tipo_anomalia": "...", "descripcion": "...", "wifi_point_id": ...}}, ... ]}}
-                        IMPORTANTE: Usa el 'id' del punto wifi obtenido de la evidencia como 'wifi_point_id'.
-                PASO 3: Obtener técnicos. Usa 'query_wifi_database' para listar técnicos disponibles (SELECT * FROM tecnicos).
-                PASO 4: Asignar tickets. Usa 'create_work_orders' pasando los 'ticket_id' y 'tecnico_id'.
-                        Argumento: {{"assignments": [ {{"ticket_id": ..., "tecnico_id": ...}}, ... ]}}
-                PASO 5: Respuesta final. Solo cuando todo esté asignado en la DB, genera el diagnóstico para el usuario.
-                
-                Esquema DB: {DB_SCHEMA_PROMPT}
-                
-                REGLA DE ORO: No te saltes pasos. Si acabas de crear tickets, el siguiente paso es buscar técnicos y luego asignar.
-                
-                Devuelve SOLO JSON:
-                {{"action":"tool","tool":"...","args":{{...}}}}
-                o
-                {{"action":"final","answer":"..."}}
-                
-                Consulta original: {user_text}
-            """
-            raw = await generate_text(prompt)
-            parsed = _safe_json(raw, {"action": "final", "answer": raw})
-            
-            if parsed.get("action") == "tool":
-                t_name = parsed.get("tool")
-                t_args = parsed.get("args", {})
-                
-                # Asegurar que args sea un diccionario para tool_calls
-                if not isinstance(t_args, dict):
-                    t_args = { "input": t_args }
-
-                return {
-                    "active_agent": "operativo",
-                    "messages": [
-                        AIMessage(
-                            content=f"Continuando flujo operativo con {t_name}.",
-                            tool_calls=[{
-                                "id": f"call_op_{t_name}_{len(state['messages'])}",
-                                "name": t_name,
-                                "args": t_args,
-                            }],
-                        )
-                    ],
-                }
-            
-            # Si es final, formatear según las reglas de visualización del mapa
-            final_context = [str(m.content) for m in state["messages"][-6:]]
+            # En modo simplificado, directo a respuesta final
             final_answer = await generate_text(
-                f"Genera la respuesta final basada en este flujo operativo. \n"
+                f"Genera el informe operativo final. \n"
                 "Reglas de estructura:\n"
-                "1) Diagnostico tecnico\n"
-                "2) Evidencia (datos clave del tool)\n"
-                "3) Acciones recomendadas priorizadas\n"
-                "4) Bloque JSON final en ```json ... ``` (id, name, status, lat, lng)\n"
-                "IMPORTANTE: El JSON debe incluir TODAS las anomalías detectadas para que aparezcan en el mapa.\n\n"
-                f"Contexto: {final_context}"
+                "1) Diagnostico tecnico corto.\n"
+                "2) Resumen de la prediccion de anomalias.\n"
+                "3) Bloque JSON de prediccion en ```json { ... } ``` (usar el output del tool).\n"
+                "4) Bloque JSON de anomalias detectadas en ```json [ { ... } ] ``` (lista de objetos con id, name, status, lat, lng).\n\n"
+                f"Consulta original: {user_text}\n"
+                f"Resultado de la tool {tool_name}: {tool_output}"
             )
             return {"next_agent": "final", "messages": [AIMessage(content=final_answer)]}
 
@@ -231,13 +186,16 @@ def build_nodes(
 
         prompt = f"""
                     Eres el Agente Estrategico.
-                    Objetivo: cruces geoespaciales y recomendaciones de inversion.
+                    Objetivo: cruces geoespaciales, recomendaciones de inversion y analisis de tendencias.
+                    REGLA MANDATORIA: No inventes datos. Usa las tablas curadas 'ap_hourly_metrics_curated' y 'wifi_points' (usando "LATITUD"/"LONGITUD") para generar insights reales.
                     Herramientas:
                     - geospatial_cross_analysis(question)
                     - query_wifi_database(sql)
                     - predict_anomaly(zone_name)
                     {DB_SCHEMA_PROMPT}
 
+                    Si la consulta requiere datos actuales o históricos, DEBES usar una tool.
+                    
                     Devuelve SOLO JSON:
                     1) Tool:
                     {{"action":"tool","tool":"geospatial_cross_analysis|query_wifi_database|predict_anomaly","input":"..."}}
@@ -305,6 +263,8 @@ def route_after_agent(state: AgentState) -> str:
     last = state["messages"][-1]
     if isinstance(last, AIMessage) and getattr(last, "tool_calls", None):
         return "tools"
+    if state.get("next_agent") == "final":
+        return "end"
     return "finalize"
 
 

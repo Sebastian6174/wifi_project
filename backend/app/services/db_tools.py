@@ -16,34 +16,102 @@ _TABLE_ALIAS_RE = re.compile(
     flags=re.IGNORECASE,
 )
 _ALIASED_COLUMN_RE = re.compile(
-    r'\b(?P<alias>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")\.(?P<column>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")\b'
+    r'(?P<alias>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")\.(?P<column>[A-Za-z_][A-Za-z0-9_]*|"[^"]+")'
 )
-_ALLOWED_TABLES = {"wifi_points", "wifi_usage", "tecnicos", "tickets"}
+_ALLOWED_TABLES = {
+    "access_point_curated",
+    "ap_hourly_metrics_curated",
+    "clients",
+    "data_dictionary",
+    "network_events_curated",
+    "plan_budget_items",
+    "plan_steps",
+    "strategic_plans",
+    "tecnicos",
+    "tickets",
+    "wifi_points",
+    "wifi_usage",
+}
 _ALLOWED_COLUMNS_BY_TABLE = {
-    "wifi_points": {
-        "id",
-        "NOMBRE ZONA",
-        "DIRECCION",
-        "BARRIO",
-        "COMUNA",
-        "CODIGO",
-        "CORREO ELECTRÓNICO",
-        "LATITUD",
-        "LONGITUD",
-        "PROVEEDOR CONECTIVIDAD",
-        "VELOCIDAD",
-        "HORARIOS",
+    "access_point_curated": {
+        "ap_name",
+        "mac",
+        "serial",
+        "status",
+        "local_ip",
+        "connectivity_history",
     },
-    "wifi_usage": {
+    "ap_hourly_metrics_curated": {
+        "timestamp_hour",
+        "ap_name",
+        "total_events",
+        "total_connections",
+        "total_disconnections",
+        "total_auth",
+        "unique_clients",
+        "disconnection_rate",
+        "status",
+    },
+    "clients": {
+        "client_id",
+        "status",
+        "client_description",
+        "last_seen",
+        "usage_mb",
+        "device_type",
+        "ap_name",
+        "policy",
+        "onboarding",
+    },
+    "data_dictionary": {
+        "file_name",
+        "field_name",
+        "data_type",
+        "description",
+    },
+    "network_events_curated": {
+        "timestamp",
+        "ap_name",
+        "ssid",
+        "client_id",
+        "client_description",
+        "event_category",
+        "event_type",
+        "event_detail",
+    },
+    "plan_budget_items": {
         "id",
-        "FECHA CONEXION",
-        "AREA",
-        "NOMBRE ZONA",
-        "COMUNA",
-        "MODEL",
-        "NUMERO CONEXIONES",
-        "USAGE (kB)",
-        "PORCENTAJE USO",
+        "plan_id",
+        "category",
+        "description",
+        "qty",
+        "unit_cost",
+    },
+    "plan_steps": {
+        "id",
+        "plan_id",
+        "position",
+        "title",
+        "owner",
+        "start_date",
+        "end_date",
+        "hours",
+        "status",
+        "notes",
+    },
+    "strategic_plans": {
+        "id",
+        "title",
+        "description",
+        "zone",
+        "focus",
+        "priority",
+        "total_hours",
+        "subtotal",
+        "contingency",
+        "grand_total",
+        "created_at",
+        "updated_at",
     },
     "tecnicos": {
         "id",
@@ -60,7 +128,36 @@ _ALLOWED_COLUMNS_BY_TABLE = {
         "resuelto_en",
         "wifi_point_id",
     },
+    "wifi_points": {
+        "id",
+        "NOMBRE ZONA",
+        "DIRECCION",
+        "BARRIO",
+        "COMUNA",
+        "CODIGO",
+        "CORREO ELECTRÓNICO",
+        "LATITUD",
+        "LONGITUD",
+        "PROVEEDOR CONECTIVIDAD",
+        "VELOCIDAD",
+        "HORARIOS",
+    },
+    "wifi_usage": {
+        "FECHA CONEXION",
+        "AREA",
+        "NOMBRE ZONA",
+        "COMUNA",
+        "MODEL",
+        "NUMERO CONEXIONES",
+        "USAGE (kB)",
+        "PORCENTAJE USO",
+        "id",
+    },
 }
+
+
+def _strip_trailing_semicolons(sql: str) -> str:
+    return sql.rstrip().rstrip(";").rstrip()
 
 
 def _is_safe_identifier(value: str) -> bool:
@@ -105,15 +202,16 @@ def get_tables_overview(table_names: list[str] | None = None) -> dict[str, Any]:
 
 
 def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
-    normalized = sql.strip().lower()
+    cleaned_sql = _strip_trailing_semicolons(sql)
+    normalized = cleaned_sql.lower()
     if not normalized.startswith("select"):
         raise ValueError("Solo se permiten consultas SELECT.")
-    if ";" in normalized:
+    if ";" in cleaned_sql:
         raise ValueError("No se permiten multiples sentencias SQL.")
 
     referenced_tables = {
         match.group("table").strip('"').lower()
-        for match in _TABLE_REF_RE.finditer(sql)
+        for match in _TABLE_REF_RE.finditer(cleaned_sql)
         if match.group("table")
     }
     disallowed = referenced_tables - _ALLOWED_TABLES
@@ -121,11 +219,11 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
         raise ValueError(
             "La consulta referencia tablas no permitidas: "
             f"{', '.join(sorted(disallowed))}. "
-            "Tablas permitidas: wifi_points, wifi_usage, tecnicos, tickets."
+            "Tablas permitidas: access_point_curated, ap_hourly_metrics_curated, network_events_curated, clients, wifi_points, wifi_usage, strategic_plans, tecnicos, tickets."
         )
 
     alias_to_table: dict[str, str] = {}
-    for match in _TABLE_ALIAS_RE.finditer(sql):
+    for match in _TABLE_ALIAS_RE.finditer(cleaned_sql):
         table = (match.group("table") or "").strip('"').lower()
         alias = (match.group("alias") or "").strip('"').lower()
         if table not in _ALLOWED_TABLES:
@@ -135,7 +233,7 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
             alias_to_table[alias] = table
 
     invalid_columns: list[str] = []
-    for match in _ALIASED_COLUMN_RE.finditer(sql):
+    for match in _ALIASED_COLUMN_RE.finditer(cleaned_sql):
         alias = match.group("alias").strip('"').lower()
         column = match.group("column").strip('"')
         table = alias_to_table.get(alias)
@@ -152,7 +250,7 @@ def run_readonly_query(sql: str, limit: int = 200) -> list[dict[str, Any]]:
             "Revisa el esquema disponible."
         )
 
-    wrapped_sql = text(f"SELECT * FROM ({sql}) AS q LIMIT :limit")
+    wrapped_sql = text(f"SELECT * FROM ({cleaned_sql}) AS q LIMIT :limit")
     with engine.connect() as conn:
         rows = conn.execute(wrapped_sql, {"limit": limit})
         return [dict(row._mapping) for row in rows]

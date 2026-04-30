@@ -29,6 +29,109 @@ AGENT_SYSTEM_PROMPTS = {
 }
 
 
+import re
+import json
+
+def _extract_structured_data(text: str):
+    prediction = None
+    anomalies = None
+    
+    # Busca bloques JSON. El primero que sea un objeto {} suele ser la prediccion.
+    # El primero que sea un array [] suele ser la lista de anomalias.
+    json_blocks = re.findall(r"```json\s+([\s\S]*?)\s+```", text)
+    
+    for block in json_blocks:
+        try:
+            parsed = json.loads(block.strip())
+            if isinstance(parsed, dict) and prediction is None:
+                prediction = parsed
+            elif isinstance(parsed, list) and anomalies is None:
+                anomalies = parsed
+        except:
+            continue
+            
+    # Limpiar el texto para que no muestre los bloques crudos si se desea
+    clean_text = re.sub(r"Bloque JSON.*?```json[\s\S]*?```", "", text, flags=re.IGNORECASE | re.DOTALL).strip()
+    # Si la limpieza dejo el texto muy vacio, volvemos al original pero sin los bloques
+    if len(clean_text) < 20:
+        clean_text = re.sub(r"```json[\s\S]*?```", "", text, flags=re.DOTALL).strip()
+
+    return clean_text, prediction, anomalies
+
+from sqlalchemy import text
+from app.core.database import engine
+
+import httpx
+
+async def _enrich_anomalies_with_coords(anomalies):
+    if not anomalies:
+        return anomalies
+        
+    try:
+        async with httpx.AsyncClient() as client:
+            for anom in anomalies:
+                # Si ya tiene coordenadas válidas, saltar
+                if anom.get("lat") and anom.get("lng") and abs(float(anom["lat"])) < 100:
+                    continue
+                    
+                target_name = str(anom.get("name", anom.get("ap_name", "")))
+                # Limpiar el nombre para la búsqueda (p.ej. AP-SILOE-01 -> Siloe)
+                clean_target = re.sub(r'AP-|-AP\d+|ZW\s+', '', target_name, flags=re.I).strip().lower()
+                
+                # 1. PRIORIDAD: Geocoding Externo (Nominatim)
+                try:
+                    search_query = f"{clean_target}, Cali, Colombia"
+                    logger.info(f"Geocoding prioritario (Nominatim) para: {search_query}")
+                    headers = {"User-Agent": "ZonasWiFi_Cali_Bot/0.1"}
+                    response = await client.get(
+                        "https://nominatim.openstreetmap.org/search",
+                        params={"q": search_query, "format": "json", "limit": 1},
+                        headers=headers,
+                        timeout=5.0
+                    )
+                    if response.status_code == 200 and response.json():
+                        data = response.json()[0]
+                        anom["lat"] = float(data["lat"])
+                        anom["lng"] = float(data["lon"])
+                        logger.info(f"Anomalia '{target_name}' ubicada via Nominatim: {anom['lat']}, {anom['lng']}")
+                        continue # Ya encontramos ubicación, pasar a la siguiente anomalía
+                except Exception as ge:
+                    logger.warning(f"Nominatim falló para {target_name}: {ge}")
+
+                # 2. FALLBACK: Búsqueda difusa en DB local
+                try:
+                    with engine.connect() as conn:
+                        query = text('SELECT id, "NOMBRE ZONA" as name, "LATITUD" as lat, "LONGITUD" as lng FROM wifi_points')
+                        all_points = [dict(row._mapping) for row in conn.execute(query)]
+                        
+                        best_match = None
+                        for pt in all_points:
+                            pt_name = str(pt["name"]).lower()
+                            if clean_target in pt_name or pt_name in clean_target:
+                                best_match = pt
+                                break
+                        
+                        if best_match:
+                            lat = float(best_match["lat"]) if best_match["lat"] else None
+                            lng = float(best_match["lng"]) if best_match["lng"] else None
+                            if lat:
+                                while abs(lat) > 10: lat /= 10
+                            if lng:
+                                while abs(lng) > 100: lng /= 10
+                            
+                            anom["lat"] = lat
+                            anom["lng"] = lng
+                            anom["wifi_point_id"] = best_match["id"]
+                            logger.info(f"Anomalia '{target_name}' ubicada via Fallback DB Local: '{best_match['name']}'")
+                except Exception as dbe:
+                    logger.error(f"Error en fallback de DB local para {target_name}: {dbe}")
+                            
+    except Exception as e:
+        logger.error(f"Error general enriqueciendo anomalias: {e}")
+        
+    return anomalies
+
+
 async def _run_agent(request: AgentPromptRequest) -> AgentPromptResponse:
     logger.info("Solicitud recibida para agente=%s", request.agent_type)
 
@@ -61,8 +164,20 @@ async def _run_agent(request: AgentPromptRequest) -> AgentPromptResponse:
             logger.info("Ejecutando decision directa para agente=%s", request.agent_type)
             answer = await generate_llm_response(full_prompt)
     
+        # Procesar respuesta para extraer JSONs
+        clean_answer, prediction, anomalies = _extract_structured_data(answer)
+        
+        # Enriquecer anomalias con coordenadas si faltan
+        if anomalies:
+            anomalies = await _enrich_anomalies_with_coords(anomalies)
+
         logger.info("Respuesta generada para agente=%s", request.agent_type)
-        return AgentPromptResponse(agent_type=request.agent_type, answer=answer)
+        return AgentPromptResponse(
+            agent_type=request.agent_type, 
+            answer=clean_answer,
+            prediction=prediction,
+            anomalies=anomalies
+        )
     except Exception as exc: 
         logger.exception("Error procesando agente=%s", request.agent_type)
         raise HTTPException(status_code=500, detail=f"Error interno de IA: {exc}") from exc

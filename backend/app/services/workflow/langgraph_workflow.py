@@ -37,17 +37,17 @@ workflow.add_conditional_edges(
 workflow.add_conditional_edges(
     "conversacional",
     route_after_agent,
-    {"tools": "tools", "finalize": "finalize"},
+    {"tools": "tools", "finalize": "finalize", "end": END},
 )
 workflow.add_conditional_edges(
     "operativo",
     route_after_agent,
-    {"tools": "tools", "finalize": "finalize"},
+    {"tools": "tools", "finalize": "finalize", "end": END},
 )
 workflow.add_conditional_edges(
     "estrategico",
     route_after_agent,
-    {"tools": "tools", "finalize": "finalize"},
+    {"tools": "tools", "finalize": "finalize", "end": END},
 )
 workflow.add_conditional_edges(
     "tools",

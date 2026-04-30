@@ -46,6 +46,29 @@ def run_sql_readonly(sql: str) -> str:
         )
     rows = [dict(row._mapping) for row in rows]
 
+    if len(rows) == 1 and list(rows[0].keys()) == ["run_sql_readonly"]:
+        inner = rows[0].get("run_sql_readonly")
+        if isinstance(inner, str):
+            try:
+                inner = json.loads(inner)
+            except json.JSONDecodeError:
+                inner = None
+
+        if isinstance(inner, list):
+            inner = {
+                "tool": "run_sql_readonly",
+                "sql": statement,
+                "count": len(inner),
+                "data": inner,
+            }
+
+        if isinstance(inner, dict):
+            inner.setdefault("tool", "run_sql_readonly")
+            inner.setdefault("sql", statement)
+            if "count" not in inner and isinstance(inner.get("data"), list):
+                inner["count"] = len(inner["data"])
+            return json.dumps(inner, ensure_ascii=True)
+
     result = {
         "tool": "run_sql_readonly",
         "sql": statement,
@@ -53,3 +76,51 @@ def run_sql_readonly(sql: str) -> str:
         "data": rows,
     }
     return json.dumps(result, ensure_ascii=True)
+
+
+@tool
+def lookup_data_dictionary(field_name: str) -> str:
+    """Lookup field metadata in data_dictionary by field name."""
+    field = (field_name or "").strip()
+    if not field:
+        return json.dumps(
+            {
+                "tool": "lookup_data_dictionary",
+                "error": "field_name cannot be empty.",
+            },
+            ensure_ascii=True,
+        )
+
+    try:
+        with engine.connect() as conn:
+            rows = conn.execute(
+                text(
+                    """
+                    SELECT file_name, field_name, data_type, description
+                    FROM data_dictionary
+                    WHERE field_name ILIKE :field
+                    ORDER BY file_name, field_name
+                    LIMIT 50
+                    """
+                ),
+                {"field": f"%{field}%"},
+            ).fetchall()
+    except Exception as exc:
+        return json.dumps(
+            {
+                "tool": "lookup_data_dictionary",
+                "error": f"Dictionary lookup failed: {str(exc)}",
+            },
+            ensure_ascii=True,
+        )
+
+    rows = [dict(row._mapping) for row in rows]
+    return json.dumps(
+        {
+            "tool": "lookup_data_dictionary",
+            "field_name": field,
+            "count": len(rows),
+            "data": rows,
+        },
+        ensure_ascii=True,
+    )
